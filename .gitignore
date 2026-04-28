@@ -1,36 +1,66 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg
 *.egg-info/
 dist/
 build/
 .eggs/
+*.pyo
 
-# Virtual environments
+# ── Virtual environments ──────────────────────────────────────────────────────
 .venv/
 venv/
 env/
+ENV/
+python_env/
 
-# IDE
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Data files (too large for git)
+# ── Neural data files (too large for git) ────────────────────────────────────
 *.bin
 *.mat
 *.dat
 *.h5
 *.hdf5
+recordings_*.h5
 
-# Outputs
+# ── Model checkpoints ─────────────────────────────────────────────────────────
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+
+# ── Experiment outputs ────────────────────────────────────────────────────────
 results_*/
+generated/
 *.pkl
+*.log
+
+# ── TT-Metal build artifacts ─────────────────────────────────────────────────
+tt-metal/build*/
+tt-metal/runtime/
+
+# ── Keep these ONNX files (small exports, checked in intentionally) ───────────
+!notes/pca_transform.onnx
+!notes/pca_transform.onnx.data

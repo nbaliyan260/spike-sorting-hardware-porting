@@ -6,7 +6,7 @@
       61
     ],
     "memory_bytes": 48800,
-    "time_ms": 2.3e-05
+    "time_ms": 2e-05
   },
   "after_pca": {
     "feature_dim": 6,
@@ -15,8 +15,8 @@
       6
     ],
     "memory_bytes": 4800,
-    "fit_time_ms": 23.079,
-    "transform_time_ms": 0.005652,
+    "fit_time_ms": 0.754,
+    "transform_time_ms": 0.005732,
     "reconstruction_mse": 0.821359,
     "variance_explained": 0.1691
   },

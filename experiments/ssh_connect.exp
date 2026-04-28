@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn ssh -o StrictHostKeyChecking=no nazishbaliyan@10.127.30.197
+expect "password:"
+send "Update@2026\r"
+expect "$ "
+
+# Check TT environment setup
+send "ls ~/Setting-Up-Tenstorrent-Environment/\r"
+expect "$ "
+
+# Check for conda/venv environments
+send "ls /opt/tt* 2>/dev/null; ls /home/nazishbaliyan/.local/lib/python*/site-packages/tt* 2>/dev/null; conda info --envs 2>/dev/null || echo 'no conda'; find / -name 'ttnn' -type d 2>/dev/null | head -5\r"
+expect -timeout 30 "$ "
+
+# Check for system-wide TT packages
+send "pip3 list 2>/dev/null | head -30\r"
+expect "$ "
+
+# Check if there's a tt metalium or tt-smi
+send "which tt-smi 2>/dev/null && tt-smi 2>/dev/null | head -20 || echo 'tt-smi not in PATH'\r"
+expect "$ "
+
+# Check environment setup script
+send "cat ~/Setting-Up-Tenstorrent-Environment/*.md 2>/dev/null | head -50 || cat ~/Setting-Up-Tenstorrent-Environment/*.sh 2>/dev/null | head -50 || ls -la ~/Setting-Up-Tenstorrent-Environment/\r"
+expect "$ "
+
+# Check if there's a virtual environment or conda env for TT
+send "ls -la /opt/ | grep tt; ls /home/*/tt* 2>/dev/null | head -10\r"
+expect "$ "
+
+send "exit\r"
+expect eof
