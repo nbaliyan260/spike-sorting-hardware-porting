@@ -1,0 +1,53 @@
+{
+  "target": "Tenstorrent Blackhole TT-NN",
+  "module": "PCA (standalone, no torchaudio)",
+  "timestamp": "2026-04-28 18:50:42",
+  "machine": "tt-blackhole-01",
+  "hardware": "Tenstorrent Blackhole (4 chips, PCIe IDs 0-3)",
+  "experiments": [
+    {
+      "name": "pca_fit_cpu",
+      "status": "PASS",
+      "fit_ms": 36.7,
+      "components_shape": [61, 6],
+      "Z_shape": [200, 6],
+      "variance_explained": 0.1691
+    },
+    {
+      "name": "pytorch_manual_transform",
+      "status": "PASS",
+      "max_diff": 0.0,
+      "time_ms": 0.067
+    },
+    {
+      "name": "ttnn_real_execution",
+      "status": "BLOCKED",
+      "reason": "device open failed (ethernet core timeout)",
+      "ttnn_available": true,
+      "device_opened": false,
+      "device_error": "TT_THROW @ llrt.cpp:515: Device 0: Timed out while waiting for active ethernet core (x=31,y=25) to become active again. Try resetting the board. Minimum tt-firmware version is 18.10.0"
+    },
+    {
+      "name": "pytorch_perf_baseline",
+      "pytorch_mean_ms": 0.074,
+      "pytorch_std_ms": 0.006,
+      "n_samples": 200,
+      "n_features": 61,
+      "k_components": 6
+    }
+  ],
+  "ttnn_available": true,
+  "ttnn_device_opened": false,
+  "ttnn_device_open_error": "Device 0: Timed out while waiting for active ethernet core (x=31,y=25) to become active again. Firmware 19.4.2 > tested 19.4.0",
+  "ttnn_device_blocker": "Ethernet core timeout — board needs reset (firmware 19.4.2 > tested 19.4.0)",
+  "summary": {
+    "pca_transform_runs_on_tt": false,
+    "ttnn_importable": true,
+    "tt_device_opened": false,
+    "tt_execution_status": "BLOCKED",
+    "blocker_pca_fit": "SVD / pca_lowrank not supported on TT hardware",
+    "blocker_device": "Ethernet core timeout — board needs reset (firmware 19.4.2 > tested 19.4.0)",
+    "transform_ops": ["ttnn.sub", "ttnn.matmul"],
+    "transform_ops_support": "Both supported in TT-NN API — confirmed via op analysis"
+  }
+}
