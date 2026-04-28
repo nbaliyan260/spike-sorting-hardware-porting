@@ -1,0 +1,26 @@
+{
+  "dataset": "C46-shaped (realistic Neuropixels simulation)",
+  "note": "Real C46 file (c46_npx_raw.bin) not available on this machine \u2014 resides on team Windows workstation",
+  "c46_parameters": {
+    "n_channels": 384,
+    "sample_rate_hz": 50023.87553,
+    "dtype": "int16",
+    "scale_uv_per_bit": 6.25,
+    "feature_length": 61,
+    "dim_pc_features": 6
+  },
+  "signal_model": "Correlated Neuropixels noise + biphasic spike template (100-500 \u00b5V, 40-80 \u00b5V near-threshold)",
+  "n_spikes": 500,
+  "results": {
+    "variance_explained_c46_shaped": 61.73,
+    "variance_explained_random": 13.37,
+    "reconstruction_mse": 21.672396,
+    "reconstruction_rmse_uv": 29.1,
+    "dimension_reduction": "61\u21926 (10.2x)",
+    "memory_reduction": "10.2x",
+    "deterministic": true,
+    "near_threshold_spikes": "handled correctly"
+  },
+  "tests_passed": "8/8",
+  "overall": "PASS"
+}
