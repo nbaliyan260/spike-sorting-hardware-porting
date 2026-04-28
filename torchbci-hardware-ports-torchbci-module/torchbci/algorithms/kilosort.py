@@ -522,28 +522,39 @@ class Kilosort4Algorithm(Block):
             max_spikes=self.max_spikes,
             feature_length=self.feature_length,
         )
-        self.pc_featuring = Kilosort4PCFeatureConversion(dim_pc_features=self.feature_length)
+        # PCA: project from feature_length → dim_pc_features
+        self.pc_featuring = Kilosort4PCFeatureConversion(dim_pc_features=self.dim_pc_features)
+        self._pca_fitted = False  # lazy-fit flag
 
         # TODO: Device needs to be dynamic
         self.spike_pc_features = torch.empty((0, self.feature_length), device="cpu", dtype=torch.float32)
         self.detected_spikes   = torch.empty((0, 2), device="cpu", dtype=torch.long)
-        # TODO: change to graph-based clustering later
+        # Clustering operates on PCA-compressed features (dim_pc_features)
         self.clustering = SimpleOnlineKMeansClustering(
             n_clusters=self.n_clusters,
-            cluster_feature_size=self.feature_length,
+            cluster_feature_size=self.dim_pc_features,
         )
     def forward_original(self, x: torch.Tensor):
         x = self.CAR(x)
         x = self.filtering(x)
         x = self.whitening(x)
-        # x, x_original = self.detection.thresholding(x)
         spikes, spike_features = self.detection(x)
-        # spike_pc_features = self.pc_featuring(spike_features)
-        # return x, spikes, spike_features, spike_pc_features
         print(f"spikes shape {spikes.shape}, spike features shape {spike_features.shape}")
-        spike_pc_features = spike_features
+
+        # ── PCA Feature Integration (Nazish, 2026-04-29) ──────────────────────
+        # Previously: spike_pc_features = spike_features  (bypass — PCA unused)
+        # Now: fit PCA once, then project to dim_pc_features dimensions
+        if spike_features is not None and spike_features.shape[0] > 0:
+            if not self._pca_fitted:
+                self.pc_featuring.fit(spike_features)
+                self._pca_fitted = True
+            spike_pc_features = self.pc_featuring.transform(spike_features)  # [N, dim_pc_features]
+        else:
+            spike_pc_features = spike_features
+        # ─────────────────────────────────────────────────────────────────────
+
         if spikes.shape[0] == 0:
-            return torch.empty((0,self.feature_length), device=x.device), torch.empty((0, 2), device=x.device), torch.empty((0,), device=x.device)
+            return torch.empty((0, self.dim_pc_features), device=x.device), torch.empty((0, 2), device=x.device), torch.empty((0,), device=x.device)
         clusters, centroids, clusters_meta = self.clustering(spike_pc_features, spikes)
         return clusters, centroids, clusters_meta
     
@@ -577,13 +588,27 @@ class Kilosort4Algorithm(Block):
 
         # last batch: if nothing detected overall, return empties
         if self.detected_spikes.numel() == 0:
-            empty_feats = torch.empty((0, self.feature_length), device=x.device, dtype=x.dtype)
+            empty_feats = torch.empty((0, self.dim_pc_features), device=x.device, dtype=x.dtype)
             empty_idx   = torch.empty((0, 2), device=x.device, dtype=torch.long)
             empty_meta  = torch.empty((0, 2), device=x.device, dtype=torch.long)
             return empty_feats, empty_idx, empty_meta
 
-        # cluster on ALL accumulated spikes/features
-        clusters, centroids, clusters_meta = self.clustering(self.spike_pc_features, self.detected_spikes)
+        # ── PCA Feature Integration (Nazish, 2026-04-29) ──────────────────────
+        # Fit PCA on all accumulated raw features, then compress before clustering.
+        # This is more numerically stable than per-batch fitting.
+        # Previously: clustering received raw spike_features (61-dim)
+        # Now:        clustering receives PCA-compressed features (dim_pc_features-dim)
+        if self.spike_pc_features.shape[0] > 0:
+            if not self._pca_fitted:
+                self.pc_featuring.fit(self.spike_pc_features)
+                self._pca_fitted = True
+            compressed_features = self.pc_featuring.transform(self.spike_pc_features)  # [N, dim_pc_features]
+        else:
+            compressed_features = self.spike_pc_features
+        # ─────────────────────────────────────────────────────────────────────
+
+        # cluster on ALL accumulated spikes with PCA-compressed features
+        clusters, centroids, clusters_meta = self.clustering(compressed_features, self.detected_spikes)
         return clusters, centroids, clusters_meta
 
     def run_one_batch(self, batch: torch.Tensor, batch_no:int , total_batches: int):

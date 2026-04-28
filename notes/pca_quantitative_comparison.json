@@ -1,0 +1,28 @@
+{
+  "before_pca": {
+    "feature_dim": 61,
+    "shape": [
+      200,
+      61
+    ],
+    "memory_bytes": 48800,
+    "time_ms": 2.3e-05
+  },
+  "after_pca": {
+    "feature_dim": 6,
+    "shape": [
+      200,
+      6
+    ],
+    "memory_bytes": 4800,
+    "fit_time_ms": 23.079,
+    "transform_time_ms": 0.005652,
+    "reconstruction_mse": 0.821359,
+    "variance_explained": 0.1691
+  },
+  "improvement": {
+    "dimension_reduction": "10.2x",
+    "memory_reduction": "10.2x",
+    "variance_preserved_pct": 16.9
+  }
+}
