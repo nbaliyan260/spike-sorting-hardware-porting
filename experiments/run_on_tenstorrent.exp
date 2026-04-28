@@ -1,0 +1,100 @@
+#!/usr/bin/expect -f
+# ============================================================
+# Full Tenstorrent Experiment Runner
+# SSH → clone repo → verify env → run PCA experiments
+# ============================================================
+
+set timeout 300
+log_user 1
+
+# ---- SSH in ----
+spawn ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 nazishbaliyan@10.127.30.197
+expect {
+    "password:" { send "Update@2026\r" }
+    timeout      { puts "SSH TIMEOUT"; exit 1 }
+    "refused"    { puts "SSH REFUSED"; exit 1 }
+}
+expect {
+    "$ " { }
+    "#"  { }
+    timeout { puts "SHELL PROMPT TIMEOUT"; exit 1 }
+}
+
+# ---- Step 1: Environment check ----
+send "echo '=== ENVIRONMENT CHECK ==='\r"
+expect "$ "
+
+send "python3 --version 2>&1 || python --version 2>&1\r"
+expect "$ "
+
+send "pip3 show torch 2>/dev/null | head -5 || pip show torch 2>/dev/null | head -5 || echo 'torch not installed'\r"
+expect "$ "
+
+send "python3 -c 'import ttnn; print(\"ttnn version:\", ttnn.__version__)' 2>&1 || echo 'ttnn NOT FOUND'\r"
+expect "$ "
+
+send "python3 -c 'import tt_lib; print(\"tt_lib found\")' 2>&1 || echo 'tt_lib NOT FOUND'\r"
+expect "$ "
+
+send "which tt-smi 2>/dev/null && tt-smi 2>/dev/null || echo 'tt-smi not found'\r"
+expect -timeout 15 "$ "
+
+send "ls ~/Setting-Up-Tenstorrent-Environment/ 2>/dev/null || echo 'No TT setup dir'\r"
+expect "$ "
+
+send "conda info --envs 2>/dev/null || echo 'no conda'\r"
+expect "$ "
+
+# ---- Step 2: Clone or update repo ----
+send "echo '=== CLONE / UPDATE REPO ==='\r"
+expect "$ "
+
+send "if \[ -d ~/spike-sorting-hardware-porting \]; then echo 'repo exists, pulling'; cd ~/spike-sorting-hardware-porting && git pull; else echo 'cloning repo'; git clone https://nbaliyan260:YOUR_GITHUB_PAT@github.com/nbaliyan260/spike-sorting-hardware-porting.git ~/spike-sorting-hardware-porting; fi\r"
+expect -timeout 60 "$ "
+
+send "ls ~/spike-sorting-hardware-porting/\r"
+expect "$ "
+
+# ---- Step 3: Install dependencies ----
+send "echo '=== INSTALL DEPS ==='\r"
+expect "$ "
+
+send "pip3 install torch numpy scikit-learn 2>&1 | tail -5\r"
+expect -timeout 120 "$ "
+
+# ---- Step 4: Run test_pca_module.py ----
+send "echo '=== TEST 1: test_pca_module.py ==='\r"
+expect "$ "
+
+send "cd ~/spike-sorting-hardware-porting && python3 experiments/test_pca_module.py 2>&1\r"
+expect -timeout 60 "$ "
+
+# ---- Step 5: Run test_pca_tenstorrent.py ----
+send "echo '=== TEST 2: test_pca_tenstorrent.py ==='\r"
+expect "$ "
+
+send "python3 experiments/test_pca_tenstorrent.py 2>&1\r"
+expect -timeout 60 "$ "
+
+# ---- Step 6: Run real TT-NN implementation ----
+send "echo '=== TEST 3: REAL TTNN IMPLEMENTATION ==='\r"
+expect "$ "
+
+send "python3 experiments/test_pca_ttnn_real.py 2>&1\r"
+expect -timeout 120 "$ "
+
+# ---- Step 7: Show results ----
+send "echo '=== RESULTS ==='\r"
+expect "$ "
+
+send "cat ~/spike-sorting-hardware-porting/notes/ttnn_real_results.json 2>/dev/null || echo 'No results file'\r"
+expect "$ "
+
+send "cat ~/spike-sorting-hardware-porting/notes/pca_test_results.json 2>/dev/null || echo 'No PCA results'\r"
+expect "$ "
+
+send "echo '=== DONE ==='\r"
+expect "$ "
+
+send "exit\r"
+expect eof
