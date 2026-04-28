@@ -484,7 +484,28 @@ All code, notes, experiments, and results are committed and pushed to:
 **https://github.com/nbaliyan260/spike-sorting-hardware-porting**
 
 ### ✅ Achievement 8: PCA Integrated Into Live Pipeline
-Modified `kilosort.py` to replace the bypass with a real fit-and-transform call. Both `forward_original` and the batched `forward` updated. Clustering now receives 6-dim PCA-compressed features instead of raw 61-dim waveforms. This is a real engineering contribution to the codebase.
+Modified `kilosort.py` to replace the bypass with a real fit-and-transform call. Both `forward_original` and the batched `forward` updated. Clustering now receives 6-dim PCA-compressed features instead of raw 61-dim waveforms.
+
+#### What I Changed in Code
+
+- **File changed:** `torchbci-hardware-ports-torchbci-module/torchbci/algorithms/kilosort.py`
+- **Old behavior:** `spike_pc_features = spike_features` — PCA module existed but output was discarded every run
+- **New behavior:** PCA is fitted once on first batch, then transforms every subsequent batch
+- **Effect:** clustering now receives **6-dim** compressed features instead of **61-dim** raw waveforms
+
+**Exact patch (lines ~544):**
+```diff
+- # Old: bypass — PCA unused
+- spike_pc_features = spike_features
+
++ # New: lazy-fit + transform (Nazish, 2026-04-29)
++ if not self._pca_fitted:
++     self.pc_featuring.fit(spike_features)   # fit once, ~23ms
++     self._pca_fitted = True
++ spike_pc_features = self.pc_featuring.transform(spike_features)  # [N, 6]
+```
+
+The clustering module was also updated to receive `dim_pc_features`-sized features (6) instead of `feature_length` (61), so the downstream code is consistent.
 
 ### ✅ Achievement 9: Quantitative Benchmark — Real Numbers
 Ran `experiments/pca_quantitative_comparison.py` locally and produced concrete before/after measurements:
@@ -498,6 +519,19 @@ Ran `experiments/pca_quantitative_comparison.py` locally and produced concrete b
 Explicitly stated the central design insight: *linear algebra stages (PCA) map well to accelerators; control-flow stages (detection) do not.* This turns the work from a list of experiments into a system design conclusion.
 
 ---
+
+## 5.5 LIMITATIONS
+
+This work is exploratory and the following limitations apply:
+
+| Limitation | Detail |
+|------------|--------|
+| **Synthetic inputs only** | PCA was validated on randomly generated spike waveforms, not real C46 neural recordings |
+| **TT hardware blocked** | Full end-to-end execution on Tenstorrent was not possible — `ttnn.open_device` fails due to Ethernet core timeout requiring board reset |
+| **Filtering not ported** | `Kilosort4Filtering` uses `scipy.signal` (CPU-only); was tested but not rewritten |
+| **Detection not ported** | `Kilosort4Detection` has iterative data-dependent control flow; porting would require algorithmic redesign |
+| **bfloat16 not tested** | Tenstorrent uses bfloat16; precision impact on PCA output was not measured on real hardware |
+| **Fit is CPU-only** | `torch.pca_lowrank` is not available on TT hardware; fitting must always run on CPU |
 
 ## 6. WHAT "SUCCESS" LOOKS LIKE — AND I HIT IT
 
@@ -513,13 +547,17 @@ According to my project README, success is NOT full port completion. Success is:
 
 ---
 
-## 7. RECOMMENDED NEXT STEPS
+## 7. FUTURE WORK — PRIORITY ORDER
 
-1. **Reset tt-blackhole-01 board** — admin action needed to fix Ethernet core timeout; then re-run `test_pca_ttnn_real.py`
-2. **Test with real C46 data** instead of synthetic data to validate PCA quality on real neural recordings
-3. **Rewrite filtering in pure PyTorch** — replace `scipy.signal` with `torchaudio.functional.highpass_biquad` or manual IIR
-4. **Profile bfloat16 precision** — Tenstorrent uses bfloat16 by default; measure MSE vs float32 for PCA output
-5. **Install torchaudio in TT venv** — `pip install torchaudio --index-url https://download.pytorch.org/whl/cpu` on tt-blackhole-01
+Ranked by impact and feasibility:
+
+| Priority | Task | Why |
+|----------|------|-----|
+| **#1** | Reset `tt-blackhole-01` board, re-run `test_pca_ttnn_real.py` | Completes the only remaining hardware blocker — everything else is ready |
+| **#2** | Test PCA on real C46 data | Validates that 16.9% variance with synthetic data holds on real neural recordings |
+| **#3** | Rewrite filtering in pure PyTorch | Removes the biggest active-pipeline blocker (`scipy.signal` → `torchaudio` or manual IIR) |
+| **#4** | Profile bfloat16 precision | Measure PCA output MSE in bfloat16 vs float32 on TT hardware |
+| **#5** | Study detection redesign | Iterative loops in `Kilosort4Detection` are a fundamental mismatch; needs algorithmic rethink before any port attempt |
 
 ---
 
