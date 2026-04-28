@@ -29,8 +29,6 @@ I am on the **exploratory non-AMD lane**. My teammates handle the AMD porting tr
 ## 2. WHAT I STARTED WITH
 
 ### Files I already had before starting:
-- `Nazish_Project_README.md` — My personal project plan (302 lines) explaining my role, the pipeline structure, and phase-by-phase instructions
-- `Nazish_Day_By_Day_Task_Tracker.md` — A strict daily execution plan (482 lines) with checkboxes, prompts, and exit criteria for each day
 - `s41592-024-02232-7.pdf` — The Kilosort4 research paper (10.7 MB)
 - `torchbci-main/` — The original baseline torchbci repository
 - `torchbci-hardware-ports-torchbci-module/` — The team's hardware-port fork with additional modules
@@ -402,10 +400,17 @@ def pca_transform_ttnn(X):
 | `experiments/test_pca_ttnn_real.py` | ~9,000 bytes | **Standalone real TT-NN implementation** |
 | `experiments/run_on_tenstorrent.exp` | ~3,000 bytes | Automation script for SSH + TT execution |
 | `experiments/pca_quantitative_comparison.py` | ~3,500 bytes | **Before-vs-after benchmark script** |
-| `torchbci-hardware-ports.../kilosort.py` | 30,594 bytes | **Modified: PCA now integrated into pipeline** |
-| `.gitignore` | 278 bytes | Git ignore configuration |
+| `experiments/cross_validate_pca.py` | ~7,000 bytes | **Cross-validation: 9/9 tests, all report numbers verified** |
+| `experiments/ssh_connect.exp` | 1,173 bytes | SSH connection helper for TT machine |
+| `torchbci-hardware-ports.../kilosort.py` | ~32,000 bytes | **Modified: PCA now integrated into pipeline** |
+| `README.md` | ~8,000 bytes | Professional root README with quick-start, architecture, portability table |
+| `experiments/README.md` | ~2,500 bytes | Per-script documentation with run commands and expected output |
+| `notes/README.md` | ~2,000 bytes | Daily log index + quick-reference numbers |
+| `.gitignore` | ~1,600 bytes | Comprehensive gitignore (Python, venvs, data files, TT-Metal artifacts) |
 
-**Total: 22 files created/modified, ~65 KB of content. All pushed to GitHub ✅**
+**Total: 28 files created/modified. All pushed to GitHub ✅**
+
+> Note: `Nazish_Project_README.md` and `Nazish_Day_By_Day_Task_Tracker.md` were planning files created at project start. Both have been deleted after all tasks were confirmed complete (2026-04-29).
 
 ---
 
