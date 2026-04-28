@@ -1,0 +1,72 @@
+#!/usr/bin/expect -f
+set timeout 300
+log_user 1
+
+spawn ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 nazishbaliyan@10.127.30.197
+expect {
+    "password:" { send "Update@2026\r" }
+    timeout      { puts "SSH_TIMEOUT"; exit 1 }
+    "refused"    { puts "SSH_REFUSED"; exit 1 }
+}
+expect {
+    -timeout 30
+    "\$" { }
+    "#"  { }
+    timeout { puts "SHELL_PROMPT_TIMEOUT"; exit 1 }
+}
+
+send "echo '=== STEP1: ENV CHECK ==='\r"
+expect "\$"
+send "uname -a\r"
+expect "\$"
+send "python3 --version\r"
+expect "\$"
+
+send "echo '=== STEP2: UPDATE REPO ==='\r"
+expect "\$"
+send "cd ~/spike-sorting-hardware-porting && git pull 2>&1 | tail -5\r"
+expect -timeout 60 "\$"
+send "git log --oneline -3\r"
+expect "\$"
+
+send "echo '=== STEP3: test_pca_module.py ==='\r"
+expect "\$"
+send "python3 experiments/test_pca_module.py 2>&1\r"
+expect -timeout 90 "\$"
+
+send "echo '=== STEP4: cross_validate_pca.py ==='\r"
+expect "\$"
+send "python3 experiments/cross_validate_pca.py 2>&1\r"
+expect -timeout 90 "\$"
+
+send "echo '=== STEP5: test_pca_c46_shaped.py ==='\r"
+expect "\$"
+send "python3 experiments/test_pca_c46_shaped.py 2>&1\r"
+expect -timeout 90 "\$"
+
+send "echo '=== STEP6: pca_quantitative_comparison.py ==='\r"
+expect "\$"
+send "python3 experiments/pca_quantitative_comparison.py 2>&1\r"
+expect -timeout 90 "\$"
+
+send "echo '=== STEP7: TT-NN VENV + REAL EXECUTION ==='\r"
+expect "\$"
+send "source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/python_env/bin/activate 2>&1\r"
+expect -timeout 30 "\$"
+send "python3 -c 'import ttnn; print(\"ttnn:\", ttnn.__version__)' 2>&1\r"
+expect -timeout 20 "\$"
+send "python3 experiments/test_pca_ttnn_real.py 2>&1\r"
+expect -timeout 180 "\$"
+
+send "echo '=== STEP8: RESULTS ==='\r"
+expect "\$"
+send "cat notes/pca_test_results.json 2>/dev/null\r"
+expect "\$"
+send "cat notes/ttnn_real_results.json 2>/dev/null\r"
+expect "\$"
+send "cat notes/pca_c46_shaped_validation.json 2>/dev/null\r"
+expect "\$"
+send "echo ALL_DONE\r"
+expect "\$"
+send "exit\r"
+expect eof

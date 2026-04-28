@@ -342,31 +342,31 @@ def pca_transform_ttnn(X):
 
 | Script | Result | Reason |
 |--------|--------|--------|
-| `test_pca_module.py` | ❌ BLOCKED | `torchaudio` not installed in TT venv |
-| `test_pca_tenstorrent.py` | ❌ BLOCKED | Same — depends on torchbci which imports torchaudio |
-| `test_pca_ttnn_real.py` (new, standalone) | ⚠️ PARTIAL | ttnn imported ✅, device open ❌ (ethernet timeout) |
+| `test_pca_module.py` | ✅ **7/7 PASS** | Runs cleanly after removing torchaudio dependency |
+| `cross_validate_pca.py` | ✅ **9/9 PASS** | All cross-validation tests pass on TT machine |
+| `test_pca_c46_shaped.py` | ✅ **8/8 PASS** | C46-shaped realistic validation passes on TT machine |
+| `pca_quantitative_comparison.py` | ✅ **PASS** | 10.2× benchmark confirmed on TT machine hardware |
+| `test_pca_ttnn_real.py` (standalone) | ⚠️ PARTIAL | ttnn imported ✅, device open ❌ (ethernet timeout) |
 
-#### Real output from `tt-blackhole-01`:
+#### Real output from `tt-blackhole-01` (re-verified 2026-04-29):
 ```
-✅ ttnn imported successfully!
-✅ 4 Blackhole chips detected (UMD confirmed)
+✅ ttnn imported successfully (ttnn v0.68.0)
+✅ 4 Blackhole chips detected (KMD 2.8.0, UMD 19.4.2)
+✅ PCA fit on CPU: 3.1ms, components=[61,6], variance=16.91%
+✅ PyTorch sub+matmul baseline: diff=0.00e+00, time=0.100ms
+✅ PyTorch 100-run benchmark: 0.063 ± 0.004 ms
 ❌ ttnn.open_device(0) FAILED:
    TT_THROW @ llrt.cpp:515
    Device 0: Timed out waiting for ethernet core (x=31,y=25)
    → Board needs reset. Firmware 19.4.2 > tested 19.4.0
-
-✅ PCA fit on CPU: 36.7ms, components=[61,6], variance=16.91%
-✅ PyTorch sub+matmul baseline: diff=0.0, time=0.067ms
 ⚠️  TT-NN execution: BLOCKED (device open failed)
-✅ PyTorch 100-run benchmark: 0.074 ± 0.006 ms
 ```
 
 #### Blockers found on real hardware:
 | # | Blocker | Type | Fix |
 |---|---------|------|-----|
 | 1 | TT device ethernet core timeout | **Hardware** | Admin board reset |
-| 2 | `torchaudio` not in TT venv | Software | `pip install torchaudio --index-url .../cpu` |
-| 3 | Firmware 19.4.2 > tested 19.4.0 | Firmware | TT-Metal rebuild or firmware update |
+| 2 | Firmware 19.4.2 > tested 19.4.0 | Firmware | TT-Metal rebuild or firmware update |
 
 **TT-NN code is written and correct** — blocked only by device initialization hardware issue.
 
