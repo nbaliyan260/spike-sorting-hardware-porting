@@ -40,8 +40,7 @@ spike-sorting-hardware-porting/
 │
 ├── README.md                          ← You are here
 ├── Nazish_Complete_Progress_Report.md ← Full project report (read this first)
-├── Nazish_Day_By_Day_Task_Tracker.md  ← Daily execution plan
-├── s41592-024-02232-7.pdf             ← Kilosort4 reference paper
+├── s41592-024-02232-7.pdf             ← Kilosort4 reference paper (Pachitariu et al., 2024)
 │
 ├── experiments/                       ← All experiment scripts
 │   ├── cross_validate_pca.py          ← Cross-validation: 9/9 tests ✅
