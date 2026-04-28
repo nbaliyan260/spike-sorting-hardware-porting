@@ -1,0 +1,38 @@
+{
+  "target": "Tenstorrent",
+  "module": "PCA",
+  "experiments": [
+    {
+      "name": "minimal_module",
+      "status": "PASS",
+      "diff": 0.0
+    },
+    {
+      "name": "op_analysis",
+      "status": "PASS",
+      "supported_ops": 5,
+      "unsupported_ops": 2
+    },
+    {
+      "name": "rewrite_assessment",
+      "status": "PASS"
+    },
+    {
+      "name": "onnx_export",
+      "status": "PASS",
+      "size_bytes": 2608
+    },
+    {
+      "name": "ttnn_pseudocode",
+      "status": "DOCUMENTED"
+    }
+  ],
+  "summary": {
+    "transform_portable": true,
+    "fit_portable": false,
+    "onnx_export": true,
+    "strategy": "Fit on CPU, deploy transform to TT hardware",
+    "blockers_for_inference": "None",
+    "blockers_for_fit": "torch.pca_lowrank, torch.linalg.svd not on TT"
+  }
+}

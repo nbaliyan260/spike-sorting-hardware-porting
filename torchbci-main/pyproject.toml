@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torchbci"
+version = "0.1.0"
+description = "A PyTorch-based BCI package"
+readme = "README.md"
+authors = [
+  { name="team torchbci"}
+]
+license = { text = "MIT" }
+dependencies = [
+  "torch",
+  "torchaudio",  
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.optional-dependencies]
+dev = []
+docs = ["google"]

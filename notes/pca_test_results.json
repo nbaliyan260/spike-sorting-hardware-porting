@@ -1,0 +1,41 @@
+{
+  "module": "Kilosort4PCFeatureConversion",
+  "tests": [
+    {
+      "name": "instantiation",
+      "status": "PASS"
+    },
+    {
+      "name": "fit",
+      "status": "PASS",
+      "time_ms": 23.6
+    },
+    {
+      "name": "transform",
+      "status": "PASS",
+      "shape": [
+        200,
+        6
+      ]
+    },
+    {
+      "name": "inverse",
+      "status": "PASS",
+      "mse": 0.821359
+    },
+    {
+      "name": "repeat",
+      "status": "PASS"
+    },
+    {
+      "name": "timing",
+      "status": "PASS",
+      "fit_ms": 0.2
+    },
+    {
+      "name": "forward_alias",
+      "status": "PASS"
+    }
+  ],
+  "overall": "PASS"
+}

@@ -1,0 +1,24 @@
+{
+  "module": "Kilosort4Filtering",
+  "tests": [
+    {
+      "name": "instantiation",
+      "status": "PASS"
+    },
+    {
+      "name": "forward",
+      "status": "PASS",
+      "time_ms": 5.1
+    },
+    {
+      "name": "repeat",
+      "status": "PASS"
+    },
+    {
+      "name": "portability",
+      "status": "BLOCKED",
+      "reason": "scipy dependency"
+    }
+  ],
+  "overall": "PASS"
+}
