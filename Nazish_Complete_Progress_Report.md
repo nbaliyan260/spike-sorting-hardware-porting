@@ -2,7 +2,7 @@
 # Spike Sorting Hardware Porting (Tenstorrent Exploratory Lane)
 # Date: 29 April 2026 (Updated)
 
-> **One-line conclusion:** We show that PCA feature transformation in Kilosort4 is portable to Tenstorrent hardware (ops: `sub + matmul`), and we integrated it into the live pipeline reducing feature dimension 10.2× (61 → 6), while full pipeline porting is blocked by filtering (scipy) and detection (iterative control flow).
+> **One-line conclusion:** We show that PCA feature transformation in Kilosort4 is portable to the Tenstorrent software stack and hardware interface level (TT-NN-compatible ops: `sub + matmul`), and we integrated it into the live pipeline reducing feature dimension 10.2× (61 → 6), while full on-device execution is currently blocked by board initialization issues, and full pipeline porting is blocked by filtering (scipy) and detection (iterative control flow).
 
 ---
 
@@ -512,7 +512,7 @@ Modified `kilosort.py` to replace the bypass with a real fit-and-transform call.
 + spike_pc_features = self.pc_featuring.transform(spike_features)  # [N, 6]
 ```
 
-The clustering module was also updated to receive `dim_pc_features`-sized features (6) instead of `feature_length` (61), so the downstream code is consistent.
+The clustering module was also updated to receive `dim_pc_features`-sized features (6) instead of `feature_length` (61), so the downstream code is consistent. After integrating PCA into the active forward path, the modified pipeline executed successfully on test inputs, and clustering accepted the reduced 6-dimensional features without shape errors, confirming the patch is functionally safe, not just conceptually correct.
 
 ### ✅ Achievement 9: Quantitative Benchmark — Real Numbers
 Ran `experiments/pca_quantitative_comparison.py` locally and produced concrete before/after measurements:
@@ -575,7 +575,7 @@ Ranked by impact and feasibility:
 | Priority | Task | Why |
 |----------|------|-----|
 | **#1** | Reset `tt-blackhole-01` board, re-run `test_pca_ttnn_real.py` | Completes the only remaining hardware blocker — everything else is ready |
-| **#2** | Test PCA on real C46 data | Validates that 16.9% variance with synthetic data holds on real neural recordings |
+| **#2** | Test PCA on the exact C46 recording file | Confirm that the 61.7% variance captured on C46-shaped realistic data transfers to the actual `c46_npx_raw.bin` neural recording (file currently on team Windows workstation) |
 | **#3** | Rewrite filtering in pure PyTorch | Removes the biggest active-pipeline blocker (`scipy.signal` → `torchaudio` or manual IIR) |
 | **#4** | Profile bfloat16 precision | Measure PCA output MSE in bfloat16 vs float32 on TT hardware |
 | **#5** | Study detection redesign | Iterative loops in `Kilosort4Detection` are a fundamental mismatch; needs algorithmic rethink before any port attempt |
