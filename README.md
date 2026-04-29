@@ -27,7 +27,7 @@ The work covers:
 | PCA transform is TT-portable | Uses only `ttnn.sub` + `ttnn.matmul` (both supported) |
 | PCA bypass fixed | `kilosort.py` line ~544: replaced `spike_pc_features = spike_features` with fit+transform |
 | 10.2× dimension reduction | 61-dim → 6-dim, 48,800 → 4,800 bytes/batch |
-| Transform overhead | 0.0054 ms per batch (negligible) |
+| Transform overhead | 0.0056 ms per batch (negligible) |
 | All tests pass | `experiments/cross_validate_pca.py`: **9/9 ✅** |
 | C46-shaped validation | `experiments/test_pca_c46_shaped.py`: **8/8 ✅**, 61.7% variance |
 | Real Allen KS4 ground truth | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
@@ -96,7 +96,7 @@ python3 experiments/cross_validate_pca.py
 ### 2. Run before/after benchmark
 ```bash
 python3 experiments/pca_quantitative_comparison.py
-# Expected: 10.2x dimension reduction, 0.0054ms transform
+# Expected: 10.2x dimension reduction, 0.0056ms transform
 ```
 
 ### 3. Run full PCA unit test suite
