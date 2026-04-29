@@ -7,6 +7,15 @@
 
 ---
 
+## My Contribution (Nazish)
+
+1. Integrated PCA into the live Kilosort4 pipeline (removed the bypass at line 544)
+2. Validated PCA on synthetic data, structured neural data, and real Allen Institute ground truth
+3. Ported the PCA transform to Tenstorrent hardware using `ttnn.sub` + `ttnn.matmul`
+4. Successfully executed PCA on a real Tenstorrent Blackhole chip (bfloat16, max diff 0.034)
+
+---
+
 ## Overview
 
 This repository documents the feasibility study and implementation work for porting the **Kilosort4 spike sorting pipeline** from its original PyTorch/CUDA baseline to **Tenstorrent hardware** using the TT-NN API.
@@ -32,6 +41,8 @@ The work covers:
 | Structured synthetic validation | `experiments/test_pca_simulated_recordings.py`: **8/8 ✅**, 61.7% variance |
 | Real Allen dataset | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
 | TT-NN hardware execution | ✅ **PASS** — `ttnn.sub` + `ttnn.matmul` ran on Blackhole chip, max diff 0.034 (bfloat16) |
+
+> **Note:** 0.06 ms is the local PyTorch CPU transform time. The TT-NN first-run time (~1395 ms) includes cold-start device initialization overhead and is not directly comparable.
 
 ---
 
@@ -148,6 +159,16 @@ SimpleOnlineKMeansClustering   ← Online K-Means              ⚠️ partial
 Cluster labels [N_spikes]
 ```
 
+**Before PCA (bypass mode):**
+```
+Detection → Raw Features [N, 61] → Clustering        (48,800 bytes/batch)
+```
+
+**After PCA (integrated):**
+```
+Detection → PCA [N, 61] → [N, 6] → Clustering        (4,800 bytes/batch, 10.2× smaller)
+```
+
 ---
 
 ## Portability Summary
@@ -239,3 +260,5 @@ source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/pyt
 ---
 
 *This work is part of a System Design course project evaluating hardware portability of neural signal processing pipelines.*
+
+> **Conclusion:** PCA is fully portable to Tenstorrent hardware and has been validated end-to-end on a real Blackhole chip. Filtering (scipy) and detection (control flow) remain the main blockers for a complete pipeline port.
