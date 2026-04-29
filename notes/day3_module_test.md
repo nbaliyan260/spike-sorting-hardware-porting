@@ -4,6 +4,8 @@
 
 ## Primary Module: Kilosort4PCFeatureConversion (PCA)
 
+I built a standalone test harness to validate the PCA module's behavior and operators.
+
 ### Test Results (All 7 PASSED ✅)
 
 | Test | Status | Details |
@@ -22,12 +24,14 @@
 - **inverse_transform():** `matmul` (@), `mul`, `add`
 
 ### Key Observations
-1. **Pure PyTorch** — no scipy, no numpy in the hot path
-2. **Deterministic** — identical outputs across repeated runs with same seed
-3. **Fast** — sub-millisecond on CPU for typical Kilosort4 input sizes
-4. **Self-contained** — no external state dependencies beyond input data
+1. **Pure PyTorch** — no `scipy`, no `numpy` in the hot path.
+2. **Deterministic** — identical outputs across repeated runs with the same seed.
+3. **Fast** — sub-millisecond on CPU for typical Kilosort4 input sizes.
+4. **Self-contained** — no external state dependencies beyond input data.
 
 ## Backup Module: Kilosort4Filtering
+
+I also tested the filtering module just to see what would happen.
 
 ### Test Results (All 4 PASSED ✅)
 
@@ -36,7 +40,7 @@
 | Instantiation | ✅ PASS | sr=50024, cutoff=300 |
 | Forward pass | ✅ PASS | [10,5000]→[10,5000], time=5.1ms |
 | Repeatability | ✅ PASS | deterministic |
-| Portability | ⛔ BLOCKED | scipy.signal dependency |
+| Portability | ⛔ BLOCKED | `scipy.signal` dependency |
 
 ### Key Finding
-Filtering uses `scipy.signal.butter` + `scipy.signal.sosfiltfilt` — **cannot be ported** to any accelerator backend without a complete rewrite to pure PyTorch IIR/FIR filtering.
+As expected, filtering uses `scipy.signal.butter` + `scipy.signal.sosfiltfilt`. **This cannot be ported** to any accelerator backend without a complete rewrite to pure PyTorch IIR/FIR filtering. I'll stick to PCA for the hardware porting experiment.

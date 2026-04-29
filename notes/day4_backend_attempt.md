@@ -7,10 +7,10 @@
 - **Module:** Kilosort4PCFeatureConversion (PCA)
 
 ## Approach
-1. Created a minimal `PCATransformModule` wrapping only the inference path
-2. Analyzed all PyTorch ops for TT-NN compatibility
-3. Attempted ONNX export as portability proxy
-4. Wrote TT-NN pseudocode for the transform path
+1. I created a minimal `PCATransformModule` wrapping only the inference path.
+2. I analyzed all the PyTorch ops used here for TT-NN compatibility.
+3. Attempted ONNX export as a proxy for hardware portability.
+4. Drafted the exact TT-NN logic needed for the transform path.
 
 ## Operator Compatibility Analysis
 
@@ -61,8 +61,7 @@
 │                                 │
 └─────────────────────────────────┘
 ```
-
-**This is a valid split:** fit on CPU (one-time calibration), deploy transform to accelerator (repeated inference).
+**Conclusion:** This is a very standard split. We fit on the CPU (it's just a one-time calibration step), and deploy the transform to the accelerator (for the repeated inference loop).
 
 ## Blockers
 

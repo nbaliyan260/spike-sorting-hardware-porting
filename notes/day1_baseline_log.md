@@ -6,62 +6,36 @@
 
 | Parameter | Value |
 |-----------|-------|
-| Machine | macOS (local dev) / 10.127.30.197 (remote) |
-| OS | macOS (local) / Linux (remote, TBD) |
+| Machine | macOS (local dev) / 10.127.30.197 (remote `tt-blackhole-01`) |
 | Python version | 3.10+ |
-| PyTorch version | TBD (requires `torch`, `torchaudio`, `scipy`, `sklearn`) |
-| Device | CPU (initial baseline) |
+| Dependencies | `torch`, `torchaudio`, `scipy`, `sklearn` |
 | Dataset | C46 (`c46_npx_raw.bin`) |
 
-## Repo Status
+## Codebase Orientation
 
 ### Cloned Repos
-1. **torchbci-hardware-ports-torchbci-module** — the hardware-port fork (primary working repo)
-   - Contains: `demo/`, `torchbci/`, `evaluation/`, `tests/`, `doc/`
-   - Key files: `torchbci/algorithms/kilosort.py` (623 lines), `demo/kilosort_driver.py`
+1. **torchbci-hardware-ports-torchbci-module** — This is our primary fork where all the porting work will live. It contains the modularized Kilosort4 logic.
+   - Key files: `torchbci/algorithms/kilosort.py` (this is the massive 600+ line pipeline definition I need to untangle), `demo/kilosort_driver.py`
    
-2. **torchbci-main** — the original baseline
-   - Contains: `demo/`, `torchbci/` (smaller, no kilosort4/ or datasets/)
-   - Key file: `torchbci/algorithms/kilosort.py` (original version)
+2. **torchbci-main** — The original baseline repository for reference.
 
-### Dependencies Required
-```
-torch
-torchaudio
-scipy
-scikit-learn
-numpy
-matplotlib
-```
+### Initial Read-Through and Discovery
+I spent today tracing execution from the `demo/kilosort_driver.py` entry point down into the actual algorithmic blocks in `Kilosort4Algorithm`. 
 
-## Baseline Run Attempt
+Here is what I found regarding the active pipeline path:
+1. ✅ **CAR (Common Average Referencing)** — active
+2. ✅ **Filtering** — active (uses a 300 Hz high-pass Butterworth)
+3. ✅ **Whitening** (ZCA transform) — active
+4. ✅ **Detection** (iterative template matching) — active
+5. ⚠️ **PCA Feature Conversion** — **Instantiated but completely BYPASSED**. On line 544, it just assigns `spike_pc_features = spike_features`. This seems like a perfect entry point for me to fix and port.
+6. ✅ **Clustering** (Simple Online K-Means) — active
 
-### Entry Points Identified
-1. **`demo/kilosort_driver.py`** — uses `KS4Pipeline` from `torchbci.algorithms.kilosort_ported` (the full ported Kilosort4 pipeline)
-2. **`demo/build_kilosort4_with_blocks.ipynb`** — tutorial notebook showing block abstractions
-3. **`torchbci/algorithms/kilosort.py`** — contains `Kilosort4Algorithm` with modular block-based pipeline
-
-### Baseline Status: Local Code Analysis Complete
-- The modular pipeline (`Kilosort4Algorithm`) can be instantiated and run on synthetic data
-- The full pipeline (`KS4Pipeline` in `kilosort_ported.py`) requires data files and probe configuration
-- The modular approach is more suitable for isolated module testing
-
-### Key Finding
-The `Kilosort4Algorithm.forward()` path:
-1. ✅ CAR (Common Average Referencing) — active
-2. ✅ Filtering (300 Hz high-pass Butterworth) — active
-3. ✅ Whitening (ZCA transform) — active
-4. ✅ Detection (iterative template matching) — active
-5. ⚠️ PCA Feature Conversion — **instantiated but BYPASSED** (`spike_pc_features = spike_features`)
-6. ✅ Clustering (Simple Online K-Means) — active
-
-### Error Log
-- No runtime errors yet (code analysis only on local machine)
-- Remote machine execution pending (requires SSH access + data files)
+### Current Blockers / Next Steps
+- No major runtime errors yet since I'm just running code analysis locally.
+- Next step is to map out exactly what operators each of these stages uses so I can determine what is actually portable to Tenstorrent.
 
 ## Exit Criteria Status
-- [x] Code structure understood
-- [x] Entry points identified
-- [x] Active pipeline path traced
-- [ ] Baseline executed on remote machine (pending)
-- [x] Exact failing step identified if applicable (PCA bypass found)
+- [x] Code structure mapped out
+- [x] Entry points found
+- [x] PCA bypass identified (excellent candidate for my work)
+- [ ] Remote execution on TT machine (pending access)

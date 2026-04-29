@@ -7,6 +7,8 @@
 ### Source File
 `torchbci/algorithms/kilosort.py` — `Kilosort4Algorithm` class (lines 474–623)
 
+I spent the day tracing the execution path of `Kilosort4Algorithm.forward()` to figure out exactly what PyTorch operators are being used and identify any immediate blockers for Tenstorrent deployment.
+
 ### Forward Path (Batch Mode — `forward()`)
 The main execution path follows `forward(x, batch_no, is_last)`:
 
@@ -104,25 +106,24 @@ Clustering: accumulated across all batches, runs only on is_last=True
 ## Module Selection Decision
 
 ### Primary Target: `Kilosort4PCFeatureConversion` (PCA)
-**Why:**
-1. Self-contained — has clear `fit()` / `transform()` / `forward()` API
-2. Pure PyTorch ops — no scipy dependency unlike filtering
-3. Standard linear algebra — uses `torch.pca_lowrank` or `torch.linalg.svd`
-4. Easy to isolate — takes `[N, D]` input, produces `[N, K]` output
-5. Well-documented internal structure with buffers for learned state
-6. Even though bypassed in pipeline, it's the cleanest test target
+**Why I chose this:**
+1. Self-contained — has clear `fit()` / `transform()` / `forward()` API.
+2. Pure PyTorch ops — no `scipy` dependency unlike filtering.
+3. Standard linear algebra — uses `torch.pca_lowrank` or `torch.linalg.svd`.
+4. Easy to isolate — takes `[N, D]` input, produces `[N, K]` output.
+5. Well-documented internal structure with buffers for learned state.
+6. Even though it's currently bypassed in the pipeline, it's the cleanest test target to prove hardware feasibility.
 
 ### Backup Target: `Kilosort4Filtering` (High-Pass Filter)
-**Why:**
-1. Active in pipeline (gives more relevance)
-2. But uses scipy — would need a pure PyTorch rewrite first
-3. Conceptually simple (Butterworth filter)
-4. Harder to port due to scipy dependency
+**Why I chose this:**
+1. Active in the pipeline (gives more relevance).
+2. But uses `scipy` — I would need to write a pure PyTorch rewrite first using `torchaudio.functional.highpass_biquad` or similar.
+3. Harder to port directly due to the `scipy` dependency, so keeping it as a backup.
 
 ### Decision
 > **Primary module: PCA Feature Conversion (`Kilosort4PCFeatureConversion`)**
 > **Backup module: Filtering (`Kilosort4Filtering`)**
-> **Reason: PCA is the smallest, most self-contained, pure-PyTorch module suitable for backend conversion experiments.**
+> **Reason:** PCA is the smallest, most self-contained, pure-PyTorch module suitable for backend conversion experiments without needing a full algorithm rewrite first.
 
 ## Exit Criteria Status
 - [x] Main algorithm file read and understood
