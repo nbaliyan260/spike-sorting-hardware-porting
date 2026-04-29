@@ -1,9 +1,21 @@
 from torchbci.block import Filter, Detection, Alignment, Block, TemplateMatching
 import torch
-import torchaudio
-from scipy import signal
-from sklearn.decomposition import PCA
 import numpy as np
+from sklearn.decomposition import PCA
+
+# Optional imports — not available in all environments (e.g. Tenstorrent TT-Metal venv)
+try:
+    import torchaudio
+    _TORCHAUDIO_AVAILABLE = True
+except ImportError:
+    _TORCHAUDIO_AVAILABLE = False
+
+try:
+    from scipy import signal
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _SCIPY_AVAILABLE = False
+
 import torch.nn.functional as F
 from typing import List, Tuple
 
