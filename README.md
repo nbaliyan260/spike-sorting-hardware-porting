@@ -41,7 +41,6 @@ The work covers:
 spike-sorting-hardware-porting/
 │
 ├── README.md                          ← You are here
-├── Nazish_Complete_Progress_Report.md ← Full project report (read this first)
 ├── s41592-024-02232-7.pdf             ← Kilosort4 reference paper (Pachitariu et al., 2024)
 │
 ├── nvidia-rtx5000/                    ← ⭐ Real KS4 run data (Allen recording, RTX 5000, F1=0.92)
