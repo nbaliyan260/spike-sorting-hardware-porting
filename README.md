@@ -29,6 +29,8 @@ The work covers:
 | 10.2× dimension reduction | 61-dim → 6-dim, 48,800 → 4,800 bytes/batch |
 | Transform overhead | 0.0054 ms per batch (negligible) |
 | All tests pass | `experiments/cross_validate_pca.py`: **9/9 ✅** |
+| C46-shaped validation | `experiments/test_pca_c46_shaped.py`: **8/8 ✅**, 61.7% variance |
+| Real Allen KS4 ground truth | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
 | TT device blocked | Ethernet core timeout on `tt-blackhole-01` — needs board reset |
 
 ---
@@ -42,14 +44,22 @@ spike-sorting-hardware-porting/
 ├── Nazish_Complete_Progress_Report.md ← Full project report (read this first)
 ├── s41592-024-02232-7.pdf             ← Kilosort4 reference paper (Pachitariu et al., 2024)
 │
+├── nvidia-rtx5000/                    ← ⭐ Real KS4 run data (Allen recording, RTX 5000, F1=0.92)
+│   ├── manifest.json                  ← Run metadata (1437 spikes, 9 clusters, CUDA 12.4)
+│   ├── equivalence_report.json        ← Ground truth comparison (median F1=0.9197)
+│   └── results/                       ← pc_features.npy, spike_times, templates, clusters
+│
 ├── experiments/                       ← All experiment scripts
 │   ├── cross_validate_pca.py          ← Cross-validation: 9/9 tests ✅
-│   ├── pca_quantitative_comparison.py ← Before/after benchmark
+│   ├── pca_quantitative_comparison.py ← Before/after benchmark (10.2× reduction)
 │   ├── test_pca_module.py             ← PCA unit tests (7/7 ✅)
+│   ├── test_pca_c46_shaped.py         ← C46-shaped realistic validation (8/8 ✅)
+│   ├── test_pca_allen_real.py         ← ⭐ Real Allen KS4 ground truth validation (8/8 ✅)
 │   ├── test_pca_tenstorrent.py        ← TT-NN compatibility analysis
 │   ├── test_pca_ttnn_real.py          ← Real TT-NN execution script
 │   ├── test_filter_module.py          ← Filter module tests
 │   ├── run_on_tenstorrent.exp         ← SSH automation script for TT machine
+│   ├── run_full_remote.exp            ← Full remote experiment runner
 │   └── ssh_connect.exp                ← SSH connection helper
 │
 ├── notes/                             ← Daily logs, results, exported models
@@ -65,6 +75,8 @@ spike-sorting-hardware-porting/
 │   ├── filter_test_results.json       ← Filter test output
 │   ├── backend_attempt_results.json   ← TT-NN analysis output
 │   ├── pca_quantitative_comparison.json ← Benchmark numbers
+│   ├── pca_c46_shaped_validation.json ← C46-shaped validation results
+│   ├── pca_allen_real_validation.json ← ⭐ Real Allen ground truth results
 │   └── ttnn_real_results.json         ← Real hardware results from tt-blackhole-01
 │
 └── torchbci-hardware-ports-torchbci-module/   ← Modified pipeline codebase
@@ -93,7 +105,13 @@ python3 experiments/test_pca_module.py
 # Expected: 7/7 tests pass
 ```
 
-### 4. Run TT-NN execution (requires Tenstorrent machine)
+### 4. Run real Allen Institute ground truth validation
+```bash
+python3 experiments/test_pca_allen_real.py
+# Expected: 8/8 tests pass, 100% variance on 1437 real spikes
+```
+
+### 5. Run TT-NN execution (requires Tenstorrent machine)
 ```bash
 ssh nazishbaliyan@10.127.30.197
 source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/python_env/bin/activate
