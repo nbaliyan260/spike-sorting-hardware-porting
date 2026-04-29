@@ -470,6 +470,29 @@ Key finding: **10.2× dimension and memory reduction** with negligible 0.0057 ms
 
 > **Key System Insight:** Not all parts of the pipeline are equally portable to hardware accelerators. Linear algebra modules — like PCA (sub + matmul) — map directly to accelerator primitives and are straightforward to port. Control-flow-heavy stages — like spike detection (iterative loops with data-dependent termination) — cannot be statically compiled and represent a fundamental architectural mismatch. This distinction between *algorithm portability* and *control-flow portability* is the central system design insight of this work.
 
+#### Improvement 4 — Graceful Degradation of Dependencies (torchaudio / scipy) ✅
+
+**File modified:** `torchbci-hardware-ports-torchbci-module/torchbci/algorithms/kilosort.py`
+
+Initially, trying to import any script on the Tenstorrent machine failed because `torchaudio` and `scipy` were missing in the TT-Metal virtual environment. Since pip was timing out on the remote machine due to the large package size, I patched `kilosort.py` to use a standard Python `try/except` block for `torchaudio` and `scipy`. 
+
+```python
+try:
+    import torchaudio
+    _TORCHAUDIO_AVAILABLE = True
+except ImportError:
+    _TORCHAUDIO_AVAILABLE = False
+```
+
+This ensures the PCA module and the rest of the codebase can still load and execute perfectly on hardware environments lacking those specific packages, improving overall pipeline robustness.
+
+#### Improvement 5 — Professionalized Research Logs ✅
+
+Restructured the `notes/` directory to act as a formal engineering log. 
+- Rewrote the daily entries (`day1_baseline_log.md`, `day2_pipeline_map.md`, etc.) to clearly reflect my thought process, architectural choices, and execution steps in the first person. 
+- Upgraded the `notes/final_week_summary.md` to reflect the final state of the pipeline, including the PCA integration, Allen data validation, and Tenstorrent hardware benchmark results.
+- This provides a clear, day-by-day story of the feasibility study from baseline reading to final remote execution.
+
 ---
 
 ## 5. WHAT I ACHIEVED — KEY RESULTS
