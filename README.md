@@ -27,10 +27,10 @@ The work covers:
 | PCA transform is TT-portable | Uses only `ttnn.sub` + `ttnn.matmul` (both supported) |
 | PCA bypass fixed | `kilosort.py` line ~544: replaced `spike_pc_features = spike_features` with fit+transform |
 | 10.2× dimension reduction | 61-dim → 6-dim, 48,800 → 4,800 bytes/batch |
-| Transform overhead | 0.0056 ms per batch (negligible) |
+| Transform overhead | PyTorch CPU: ~0.06 ms • TT-NN first-run: ~1395 ms (cold start) |
 | All tests pass | `experiments/cross_validate_pca.py`: **9/9 ✅** |
-| simulated recordings validation | `experiments/test_pca_simulated_recordings_shaped.py`: **8/8 ✅**, 61.7% variance |
-| Real Allen KS4 ground truth | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
+| Structured synthetic validation | `experiments/test_pca_simulated_recordings.py`: **8/8 ✅**, 61.7% variance |
+| Real Allen dataset | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
 | TT-NN hardware execution | ✅ **PASS** — `ttnn.sub` + `ttnn.matmul` ran on Blackhole chip, max diff 0.034 (bfloat16) |
 
 ---
@@ -53,7 +53,7 @@ spike-sorting-hardware-porting/
 │   ├── cross_validate_pca.py          ← Cross-validation: 9/9 tests ✅
 │   ├── pca_quantitative_comparison.py ← Before/after benchmark (10.2× reduction)
 │   ├── test_pca_module.py             ← PCA unit tests (7/7 ✅)
-│   ├── test_pca_simulated_recordings_shaped.py         ← simulated recordings realistic validation (8/8 ✅)
+│   ├── test_pca_simulated_recordings.py  ← Structured synthetic validation (8/8 ✅)
 │   ├── test_pca_allen_real.py         ← ⭐ Real Allen KS4 ground truth validation (8/8 ✅)
 │   ├── test_pca_tenstorrent.py        ← TT-NN compatibility analysis
 │   ├── test_pca_ttnn_real.py          ← Real TT-NN execution script
@@ -75,7 +75,7 @@ spike-sorting-hardware-porting/
 │   ├── filter_test_results.json       ← Filter test output
 │   ├── backend_attempt_results.json   ← TT-NN analysis output
 │   ├── pca_quantitative_comparison.json ← Benchmark numbers
-│   ├── pca_simulated_recordings_shaped_validation.json ← simulated recordings validation results
+│   ├── pca_simulated_recordings_validation.json ← Structured synthetic validation results
 │   ├── pca_allen_real_validation.json ← ⭐ Real Allen ground truth results
 │   └── ttnn_real_results.json         ← Real hardware results from tt-blackhole-01
 │
@@ -96,7 +96,7 @@ python3 experiments/cross_validate_pca.py
 ### 2. Run before/after benchmark
 ```bash
 python3 experiments/pca_quantitative_comparison.py
-# Expected: 10.2x dimension reduction, 0.0056ms transform
+# Expected: 10.2x dimension reduction, ~0.06ms transform
 ```
 
 ### 3. Run full PCA unit test suite
@@ -117,7 +117,7 @@ ssh nazishbaliyan@10.127.30.197
 source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/python_env/bin/activate
 cd ~/spike-sorting-hardware-porting
 python3 experiments/test_pca_ttnn_real.py
-# Note: requires board reset first (Ethernet core timeout blocker)
+# Expected: PASS — PCA runs on Blackhole chip (bfloat16, max diff ~0.034)
 ```
 
 ---
@@ -128,22 +128,22 @@ python3 experiments/test_pca_ttnn_real.py
 Input Signal [C, N]
     │
     ▼
-Kilosort4CAR           ← Common Average Referencing
+Kilosort4CAR           ← Common Average Referencing           ✅ portable
     │
     ▼
-Kilosort4Filtering     ← 300Hz Butterworth high-pass  ⚠️ scipy (not portable)
+Kilosort4Filtering     ← 300Hz Butterworth high-pass          ❌ scipy blocker
     │
     ▼
-Kilosort4Whitening     ← ZCA decorrelation
+Kilosort4Whitening     ← ZCA decorrelation                   ⚠️ partial
     │
     ▼
-Kilosort4Detection     ← Iterative template matching  ⚠️ control-flow (not portable)
+Kilosort4Detection     ← Iterative template matching          ❌ control-flow
     │
     ▼
-Kilosort4PCFeatureConversion   ← PCA 61→6 dims  ✅ PORTED (sub + matmul)
-    │                              ← Previously bypassed, NOW INTEGRATED
+Kilosort4PCFeatureConversion   ← PCA 61→6 dims               ✅ PORTED + VERIFIED ON HW
+    │
     ▼
-SimpleOnlineKMeansClustering   ← Online K-Means
+SimpleOnlineKMeansClustering   ← Online K-Means              ⚠️ partial
     │
     ▼
 Cluster labels [N_spikes]
@@ -163,7 +163,9 @@ Cluster labels [N_spikes]
 | PCA fit | ❌ No | `torch.pca_lowrank` not on TT |
 | Clustering | ⚠️ Partial | Dynamic Python lists |
 
-**Strategy:** Fit on CPU (one-time) → Transfer weights → Transform on TT hardware
+**Final design: Hybrid execution** — CPU handles fit (one-time calibration) + control flow; TT hardware handles PCA transform (repeated inference).
+
+👉 **PCA is the only pipeline stage fully ported and validated on real Tenstorrent hardware.**
 
 ---
 
@@ -173,10 +175,17 @@ Cluster labels [N_spikes]
 |-------|--------|
 | `ttnn` importable on `tt-blackhole-01` | ✅ Yes |
 | 4x Blackhole chips detected | ✅ Yes |
-| `ttnn.open_device(0)` succeeds | ❌ Blocked |
-| Blocker | Ethernet core timeout (firmware 19.4.2 > tested 19.4.0) |
-| Fix | Admin board reset of `tt-blackhole-01` |
-| TT-NN code ready to run | ✅ Yes (`experiments/test_pca_ttnn_real.py`) |
+| `ttnn.open_device(0)` | ✅ Yes (resolved after board reset) |
+| `ttnn.sub` + `ttnn.matmul` | ✅ Executed successfully (bfloat16) |
+| Max diff vs PyTorch float32 | 0.034 (within bfloat16 tolerance) |
+| TT-NN code | ✅ `experiments/test_pca_ttnn_real.py` |
+
+**Timing breakdown:**
+| Backend | Latency | Notes |
+|---------|---------|-------|
+| PyTorch (CPU) | ~0.06 ms | 100-run average, N=200, D=61, K=6 |
+| TT-NN (first run) | ~1395 ms | Cold start: device init + tensor transfer + layout conversion |
+| TT-NN (warm, projected) | Significantly lower | Steady-state inference without cold-start overhead |
 
 ---
 
@@ -223,7 +232,10 @@ source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/pyt
 
 - **Paper:** Pachitariu et al., *Kilosort4: fast spike sorting with a graph-based algorithm*, Nature Methods 2024. [`s41592-024-02232-7.pdf`](./s41592-024-02232-7.pdf)
 - **Codebase:** Based on `torchbci` — PyTorch-based Brain-Computer Interface framework
-- **Dataset:** Simulated recordings (Neuropixels recording, 384 channels, ~50 kHz)
+- **Datasets used:**
+  - Synthetic random data (`torch.randn`) — unit testing and benchmarking
+  - Structured synthetic data (Neuropixels-like, 384 ch, ~50 kHz) — realistic validation
+  - Real Allen Institute recording (KS4 output from NVIDIA RTX 5000) — ground truth
 
 ---
 
