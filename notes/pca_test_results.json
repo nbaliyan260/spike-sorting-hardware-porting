@@ -8,7 +8,7 @@
     {
       "name": "fit",
       "status": "PASS",
-      "time_ms": 3.3
+      "time_ms": 9.8
     },
     {
       "name": "transform",
@@ -30,7 +30,7 @@
     {
       "name": "timing",
       "status": "PASS",
-      "fit_ms": 0.6
+      "fit_ms": 0.2
     },
     {
       "name": "forward_alias",

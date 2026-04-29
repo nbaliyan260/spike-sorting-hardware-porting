@@ -2,7 +2,7 @@
 """
 Simulated recordings-Shaped Dataset Validation for PCA Module
 =============================================
-The real Simulated recordings Neuropixels recording (simulated_recordings_npx_raw.bin) is not available on this
+The real Simulated recordings Neuropixels recording (sim_recordings_npx_raw.bin) is not available on this
 machine — it resides on the team's Windows workstation (D:\\Marquees-smith\\simulated_recordings\\).
 
 This script does the next best thing: validates PCA on data that is statistically
@@ -30,15 +30,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'torchbci-hardw
 from torchbci.algorithms.kilosort import Kilosort4PCFeatureConversion
 
 # ── Simulated recordings exact recording parameters ────────────────────────────────────────────
-Simulated recordings_N_CHANNELS     = 384          # Neuropixels 1.0 standard
-Simulated recordings_SAMPLE_RATE    = 50023.87553  # Hz (Simulated recordings-specific, from dataset_utils.py)
-Simulated recordings_DTYPE          = np.int16
-Simulated recordings_SCALE_UV       = 6.25         # µV per int16 bit (Neuropixels gain ~500)
-Simulated recordings_LOOKBEHIND     = 30           # samples before spike peak
-Simulated recordings_LOOKAHEAD      = 30           # samples after spike peak
-Simulated recordings_FEATURE_LENGTH = Simulated recordings_LOOKBEHIND + Simulated recordings_LOOKAHEAD + 1  # = 61
-Simulated recordings_DIM_PC         = 6            # PCA output dimensions (pipeline default)
-Simulated recordings_FEATURE_CHANNELS = 10         # channels per spike feature (pipeline default)
+SIM_N_CHANNELS     = 384          # Neuropixels 1.0 standard
+SIM_SAMPLE_RATE    = 50023.87553  # Hz (Simulated recordings-specific, from dataset_utils.py)
+SIM_DTYPE          = np.int16
+SIM_SCALE_UV       = 6.25         # µV per int16 bit (Neuropixels gain ~500)
+SIM_LOOKBEHIND     = 30           # samples before spike peak
+SIM_LOOKAHEAD      = 30           # samples after spike peak
+SIM_FEATURE_LENGTH = SIM_LOOKBEHIND + SIM_LOOKAHEAD + 1  # = 61
+SIM_DIM_PC         = 6            # PCA output dimensions (pipeline default)
+SIM_FEATURE_CHANNELS = 10         # channels per spike feature (pipeline default)
 
 np.random.seed(42)
 torch.manual_seed(42)
@@ -51,11 +51,11 @@ print("=" * 65)
 print("Simulated recordings-SHAPED DATASET VALIDATION — Kilosort4PCFeatureConversion")
 print("=" * 65)
 print(f"\nRecording parameters (real Simulated recordings):")
-print(f"  Channels    : {Simulated recordings_N_CHANNELS}")
-print(f"  Sample rate : {Simulated recordings_SAMPLE_RATE:.2f} Hz")
-print(f"  dtype       : {Simulated recordings_DTYPE.__name__}")
-print(f"  Scale       : {Simulated recordings_SCALE_UV} µV/bit")
-print(f"  Feature len : {Simulated recordings_FEATURE_LENGTH} samples (lookbehind={Simulated recordings_LOOKBEHIND} + peak + lookahead={Simulated recordings_LOOKAHEAD})")
+print(f"  Channels    : {SIM_N_CHANNELS}")
+print(f"  Sample rate : {SIM_SAMPLE_RATE:.2f} Hz")
+print(f"  dtype       : {SIM_DTYPE.__name__}")
+print(f"  Scale       : {SIM_SCALE_UV} µV/bit")
+print(f"  Feature len : {SIM_FEATURE_LENGTH} samples (lookbehind={SIM_LOOKBEHIND} + peak + lookahead={SIM_LOOKAHEAD})")
 
 
 def generate_simulated_recordings_spike_features(n_spikes: int, seed: int = 42) -> torch.Tensor:
@@ -73,36 +73,36 @@ def generate_simulated_recordings_spike_features(n_spikes: int, seed: int = 42) 
 
     # Spatial correlation matrix (neighbouring channels are correlated)
     # Use exponential decay: corr(i,j) = exp(-|i-j| / 20)
-    ch_indices = np.arange(Simulated recordings_N_CHANNELS)
+    ch_indices = np.arange(SIM_N_CHANNELS)
     corr_matrix = np.exp(-np.abs(ch_indices[:, None] - ch_indices[None, :]) / 20.0)
-    L = np.linalg.cholesky(corr_matrix + 1e-6 * np.eye(Simulated recordings_N_CHANNELS))
+    L = np.linalg.cholesky(corr_matrix + 1e-6 * np.eye(SIM_N_CHANNELS))
 
     # Generate background noise (correlated across channels)
     n_bg_samples = n_spikes * 100  # enough context
-    white = rng.randn(Simulated recordings_N_CHANNELS, n_bg_samples)
+    white = rng.randn(SIM_N_CHANNELS, n_bg_samples)
     correlated_noise = (L @ white)  # [384, N]
 
     # Scale to realistic int16 amplitude (~20-50 µV RMS)
     target_rms_uv = 30.0  # µV
     current_rms = np.std(correlated_noise)
-    correlated_noise = correlated_noise * (target_rms_uv / Simulated recordings_SCALE_UV / current_rms)
+    correlated_noise = correlated_noise * (target_rms_uv / SIM_SCALE_UV / current_rms)
 
     # Spike waveform template: biphasic (negative trough at t=30, positive at t=40)
-    t = np.arange(Simulated recordings_FEATURE_LENGTH)
+    t = np.arange(SIM_FEATURE_LENGTH)
     spike_template = (
         -np.exp(-0.5 * ((t - 30) / 3) ** 2) * 1.0   # negative trough
         + 0.4 * np.exp(-0.5 * ((t - 40) / 4) ** 2)   # positive rebound
     )
 
     # Generate spike features: each is a noisy version of the template
-    features = np.zeros((n_spikes, Simulated recordings_FEATURE_LENGTH), dtype=np.float32)
+    features = np.zeros((n_spikes, SIM_FEATURE_LENGTH), dtype=np.float32)
     for i in range(n_spikes):
         # Random amplitude: 100-500 µV (realistic for well-isolated unit)
         amplitude_uv = rng.uniform(100, 500)
-        amplitude_int16 = amplitude_uv / Simulated recordings_SCALE_UV
+        amplitude_int16 = amplitude_uv / SIM_SCALE_UV
 
         # Small channel noise added
-        noise = rng.randn(Simulated recordings_FEATURE_LENGTH) * 5.0  # 5 int16 units = ~31 µV noise
+        noise = rng.randn(SIM_FEATURE_LENGTH) * 5.0  # 5 int16 units = ~31 µV noise
 
         features[i] = (spike_template * amplitude_int16 + noise).astype(np.float32)
 
@@ -114,9 +114,9 @@ print("\n[Test 1] Generate simulated recordings spike features (n=500 spikes)...
 try:
     N_SPIKES = 500
     X = generate_simulated_recordings_spike_features(N_SPIKES)
-    assert X.shape == (N_SPIKES, Simulated recordings_FEATURE_LENGTH)
+    assert X.shape == (N_SPIKES, SIM_FEATURE_LENGTH)
     assert X.dtype == torch.float32
-    rms = X.std().item() * Simulated recordings_SCALE_UV
+    rms = X.std().item() * SIM_SCALE_UV
     print(f"  {PASS}  shape={list(X.shape)}, dtype={X.dtype}")
     print(f"          signal RMS ≈ {rms:.1f} µV (realistic for Neuropixels)")
     results.append(True)
@@ -127,12 +127,12 @@ except Exception as e:
 # ── Test 2: PCA fit on simulated recordings data ────────────────────────────────────────
 print("\n[Test 2] Fit PCA on simulated recordings spike features...")
 try:
-    pca = Kilosort4PCFeatureConversion(dim_pc_features=Simulated recordings_DIM_PC, use_lowrank=True)
+    pca = Kilosort4PCFeatureConversion(dim_pc_features=SIM_DIM_PC, use_lowrank=True)
     t0 = time.perf_counter()
     pca.fit(X)
     t_fit = (time.perf_counter() - t0) * 1000
     assert pca.fitted_
-    assert pca.components_.shape == (Simulated recordings_FEATURE_LENGTH, Simulated recordings_DIM_PC)
+    assert pca.components_.shape == (SIM_FEATURE_LENGTH, SIM_DIM_PC)
     print(f"  {PASS}  fit time={t_fit:.1f}ms, components={list(pca.components_.shape)}")
     results.append(True)
 except Exception as e:
@@ -142,17 +142,17 @@ except Exception as e:
 # ── Test 3: Variance explained on realistic data ───────────────────────────────
 print("\n[Test 3] Variance explained on simulated recordings vs random data...")
 try:
-    var_simulated_recordings = pca.variance_explained
+    var_sim = pca.variance_explained
 
     # Compare with purely random (what we had before)
-    pca_rand = Kilosort4PCFeatureConversion(dim_pc_features=Simulated recordings_DIM_PC)
-    pca_rand.fit(torch.randn(N_SPIKES, Simulated recordings_FEATURE_LENGTH))
+    pca_rand = Kilosort4PCFeatureConversion(dim_pc_features=SIM_DIM_PC)
+    pca_rand.fit(torch.randn(N_SPIKES, SIM_FEATURE_LENGTH))
     var_rand = pca_rand.variance_explained
 
     print(f"  {PASS}  Variance explained:")
-    print(f"          simulated recordings data : {var_simulated_recordings*100:.2f}%")
+    print(f"          simulated recordings data : {var_sim*100:.2f}%")
     print(f"          Random data     : {var_rand*100:.2f}%")
-    print(f"          Difference      : {(var_simulated_recordings - var_rand)*100:+.2f}% ({'higher' if var_simulated_recordings > var_rand else 'lower'} for structured data)")
+    print(f"          Difference      : {(var_sim - var_rand)*100:+.2f}% ({'higher' if var_sim > var_rand else 'lower'} for structured data)")
     print(f"          → simulated recordings data is more compressible: PCA captures more structure")
     results.append(True)
 except Exception as e:
@@ -165,9 +165,9 @@ try:
     t0 = time.perf_counter()
     Z = pca.transform(X)
     t_tr = (time.perf_counter() - t0) * 1000
-    assert Z.shape == (N_SPIKES, Simulated recordings_DIM_PC)
+    assert Z.shape == (N_SPIKES, SIM_DIM_PC)
     print(f"  {PASS}  {list(X.shape)} → {list(Z.shape)}  in {t_tr:.3f}ms")
-    print(f"          dim reduction: {Simulated recordings_FEATURE_LENGTH}→{Simulated recordings_DIM_PC}  ({Simulated recordings_FEATURE_LENGTH/Simulated recordings_DIM_PC:.1f}x)")
+    print(f"          dim reduction: {SIM_FEATURE_LENGTH}→{SIM_DIM_PC}  ({SIM_FEATURE_LENGTH/SIM_DIM_PC:.1f}x)")
     results.append(True)
 except Exception as e:
     print(f"  {FAIL}  {e}")
@@ -178,7 +178,7 @@ print("\n[Test 5] Reconstruction MSE on simulated recordings data...")
 try:
     X_recon = pca.inverse_transform(Z)
     mse = torch.mean((X - X_recon) ** 2).item()
-    mse_uv2 = mse * (Simulated recordings_SCALE_UV ** 2)  # convert to µV²
+    mse_uv2 = mse * (SIM_SCALE_UV ** 2)  # convert to µV²
     rmse_uv = mse_uv2 ** 0.5
     print(f"  {PASS}  MSE = {mse:.4f} (float32 units)")
     print(f"          RMSE ≈ {rmse_uv:.2f} µV  (reconstruction error in physical units)")
@@ -219,15 +219,15 @@ except Exception as e:
 print("\n[Test 8] Small amplitude spikes (near detection threshold ~50µV)...")
 try:
     rng2 = np.random.RandomState(99)
-    t_arr = np.arange(Simulated recordings_FEATURE_LENGTH)
+    t_arr = np.arange(SIM_FEATURE_LENGTH)
     template = -np.exp(-0.5 * ((t_arr - 30) / 3) ** 2)
     low_amp = np.array([
-        template * (rng2.uniform(40, 80) / Simulated recordings_SCALE_UV) + rng2.randn(Simulated recordings_FEATURE_LENGTH) * 2
+        template * (rng2.uniform(40, 80) / SIM_SCALE_UV) + rng2.randn(SIM_FEATURE_LENGTH) * 2
         for _ in range(50)
     ], dtype=np.float32)
     X_low = torch.tensor(low_amp)
     Z_low = pca.transform(X_low)  # uses already-fitted PCA
-    assert Z_low.shape == (50, Simulated recordings_DIM_PC)
+    assert Z_low.shape == (50, SIM_DIM_PC)
     amp_range = f"{40}-{80} µV"
     print(f"  {PASS}  50 near-threshold spikes ({amp_range}) → shape={list(Z_low.shape)}")
     results.append(True)
@@ -254,25 +254,25 @@ else:
 # ── Save results ──────────────────────────────────────────────────────────────
 output = {
     "dataset": "simulated recordings (realistic Neuropixels simulation)",
-    "note": "Real Simulated recordings file (simulated_recordings_npx_raw.bin) not available on this machine — resides on team Windows workstation",
+    "note": "Real Simulated recordings file (sim_recordings_npx_raw.bin) not available on this machine — resides on team Windows workstation",
     "simulated_recordings_parameters": {
-        "n_channels": Simulated recordings_N_CHANNELS,
-        "sample_rate_hz": Simulated recordings_SAMPLE_RATE,
+        "n_channels": SIM_N_CHANNELS,
+        "sample_rate_hz": SIM_SAMPLE_RATE,
         "dtype": "int16",
-        "scale_uv_per_bit": Simulated recordings_SCALE_UV,
-        "feature_length": Simulated recordings_FEATURE_LENGTH,
-        "scale_uv_per_bit": SIMULATED_RECORDINGS_SCALE_UV,
-        "feature_length": SIMULATED_RECORDINGS_FEATURE_LENGTH,
-        "dim_pc_features": SIMULATED_RECORDINGS_DIM_PC,
+        "scale_uv_per_bit": SIM_SCALE_UV,
+        "feature_length": SIM_FEATURE_LENGTH,
+        "scale_uv_per_bit": SIM_SCALE_UV,
+        "feature_length": SIM_FEATURE_LENGTH,
+        "dim_pc_features": SIM_DIM_PC,
     },
     "signal_model": "Correlated Neuropixels noise + biphasic spike template (100-500 µV, 40-80 µV near-threshold)",
     "n_spikes": N_SPIKES,
     "results": {
-        "variance_explained_simulated_recordings_shaped": round(var_simulated_recordings * 100, 2),
+        "variance_explained_simulated_recordings_shaped": round(var_sim * 100, 2),
         "variance_explained_random": round(var_rand * 100, 2),
         "reconstruction_mse": round(mse, 6),
         "reconstruction_rmse_uv": round(rmse_uv, 2),
-        "dimension_reduction": f"{SIMULATED_RECORDINGS_FEATURE_LENGTH}→{SIMULATED_RECORDINGS_DIM_PC} ({SIMULATED_RECORDINGS_FEATURE_LENGTH/SIMULATED_RECORDINGS_DIM_PC:.1f}x)",
+        "dimension_reduction": f"{SIM_FEATURE_LENGTH}→{SIM_DIM_PC} ({SIM_FEATURE_LENGTH/SIM_DIM_PC:.1f}x)",
         "memory_reduction": f"{reduction:.1f}x",
         "deterministic": True,
         "near_threshold_spikes": "handled correctly",
@@ -283,5 +283,5 @@ output = {
 
 with open("notes/pca_simulated_recordings_validation.json", "w") as f:
     json.dump(output, f, indent=2)
-print(f"\nResults saved → {out}")
+print(f"\nResults saved → notes/pca_simulated_recordings_validation.json")
 print("=" * 65)

@@ -1,6 +1,6 @@
 {
   "dataset": "simulated recordings (realistic Neuropixels simulation)",
-  "note": "Real Simulated recordings file (simulated_recordings_npx_raw.bin) not available on this machine \u2014 resides on team Windows workstation",
+  "note": "Real Simulated recordings file (sim_recordings_npx_raw.bin) not available on this machine \u2014 resides on team Windows workstation",
   "simulated_recordings_parameters": {
     "n_channels": 384,
     "sample_rate_hz": 50023.87553,
