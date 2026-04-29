@@ -58,7 +58,7 @@ Initially, all scripts failed because `torchaudio` was missing from the TT venv.
 **After the fix:**
 - `test_pca_module.py`: ✅ 7/7 PASS
 - `cross_validate_pca.py`: ✅ 9/9 PASS
-- `test_pca_c46_shaped.py`: ✅ 8/8 PASS
+- `test_pca_simulated_recordings.py`: ✅ 8/8 PASS
 - `test_pca_allen_real.py`: ✅ 8/8 PASS
 - `pca_quantitative_comparison.py`: ✅ PASS (10.2x reduction confirmed)
 
