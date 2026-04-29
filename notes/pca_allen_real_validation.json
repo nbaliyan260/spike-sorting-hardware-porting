@@ -11,8 +11,8 @@
   },
   "results": {
     "variance_explained_real_allen": 100.0,
-    "variance_explained_c46_shaped": 61.66,
-    "variance_explained_random": 11.47,
+    "variance_explained_c46_shaped": 61.79,
+    "variance_explained_random": 11.53,
     "reconstruction_mse": 0.0,
     "reconstruction_rmse": 0.0,
     "memory_reduction": "10.2x",
