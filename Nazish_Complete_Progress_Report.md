@@ -2,7 +2,14 @@
 # Spike Sorting Hardware Porting (Tenstorrent Exploratory Lane)
 # Date: 29 April 2026 (Updated)
 
-> **One-line conclusion:** We show that PCA feature transformation in Kilosort4 is portable to the Tenstorrent software stack and hardware interface level (TT-NN-compatible ops: `sub + matmul`), and we integrated it into the live pipeline reducing feature dimension 10.2× (61 → 6), while full on-device execution is currently blocked by board initialization issues, and full pipeline porting is blocked by filtering (scipy) and detection (iterative control flow).
+> **One-line conclusion:** We show that PCA in Kilosort4 is portable to the Tenstorrent software stack (`sub + matmul`), integrated it into the live pipeline with 10.2× feature reduction, and identified the remaining blockers as hardware initialization, scipy-based filtering, and control-flow-heavy detection.
+
+---
+
+> **If you only read 3 things:**
+> 1. `README.md` — project overview and quick-start
+> 2. `Nazish_Complete_Progress_Report.md` — full analysis and results
+> 3. `experiments/cross_validate_pca.py` — proof the PCA integration works (9/9 tests)
 
 ---
 
@@ -547,7 +554,7 @@ The real C46 recording is not available locally (resides on team workstation). I
 Key insight: PCA explains **3.66× more variance** on structured spike data than on random data, confirming it is genuinely useful for real neural recordings, not just theoretically sound.
 
 ### ✅ Achievement 12: Real Allen Institute Recording Validation
-A teammate added the `nvidia-rtx5000/` folder containing a **real Kilosort4 run** on the Allen Institute synthetic recording (NVIDIA RTX 5000 Ada, CUDA 12.4). Used this as ground truth to validate the PCA module against actual pipeline output.
+Used real Kilosort4 output from an Allen Institute recording as external validation for the PCA module. The `nvidia-rtx5000/` folder contains results from a real KS4 run (NVIDIA RTX 5000 Ada, CUDA 12.4), including the actual `pc_features.npy` output — used as ground truth to verify our module produces consistent output.
 
 | Property | Value |
 |----------|-------|
