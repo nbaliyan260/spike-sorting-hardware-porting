@@ -61,7 +61,7 @@ Why:
 ### Pipeline Integration & Validation (`experiments/pca_quantitative_comparison.py`, etc.)
 - Integrated PCA into the live pipeline (fixed the bypass on line 544).
 - Benchmarked at **10.2× dimension reduction** (48,800 bytes → 4,800 bytes per batch).
-- Validated on simulated recordings data (61.7% variance) and real Allen Institute KS4 ground truth (100% variance).
+- Validated on structured synthetic data (61.7% variance) and real Allen Institute KS4 ground truth (100% variance).
 
 ### TT Machine Execution (`experiments/test_pca_ttnn_real.py`)
 - Executed all tests directly on `tt-blackhole-01`.
@@ -108,7 +108,7 @@ The PCA transform module exports cleanly to ONNX, confirming it uses only standa
 
 ## Team Update (Ready to Send)
 
-> I finished the baseline analysis, isolated PCA Feature Conversion as the target module, and **integrated it into the live pipeline** (replacing the bypass at line 544 with a real fit-and-transform). Benchmarks show **10.2× dimension reduction** (61 → 6 features) and **10.2× memory reduction** per batch with only **0.0056 ms** overhead. Validated on three datasets: random (11.5% variance), simulated recordings realistic (61.7%, 8/8 ✅), and **real Allen Institute KS4 ground truth** (100% variance, 1,437 real spikes, 8/8 ✅). All 6 experiment scripts pass on both local Mac and `tt-blackhole-01` (TT-Metal venv). The PCA transform path (`sub + matmul`) is confirmed portable to TT-NN — both ops exist in the API and ttnn was verified importable on the hardware. Actual TT device execution is blocked by an Ethernet core timeout requiring board reset. Main remaining blockers for broader pipeline porting: (1) scipy in filtering, (2) iterative loops in detection. The PCA bypass blocker is now resolved.
+> I finished the baseline analysis, isolated PCA Feature Conversion as the target module, and **integrated it into the live pipeline** (replacing the bypass at line 544 with a real fit-and-transform). Benchmarks show **10.2× dimension reduction** (61 → 6 features) and **10.2× memory reduction** per batch with only **0.06 ms** PyTorch CPU overhead. Validated on three datasets: random synthetic (11.5% variance), structured synthetic (61.7%, 8/8 ✅), and **real Allen Institute KS4 ground truth** (100% variance, 1,437 real spikes, 8/8 ✅). **PCA transform verified on real Tenstorrent Blackhole hardware** — `ttnn.sub` + `ttnn.matmul` both executed in bfloat16 (max diff 0.034, MSE 4.89e-05). Final design is hybrid: CPU (fit + control flow) + TT (PCA transform). Remaining blockers for broader pipeline porting: (1) scipy in filtering, (2) iterative loops in detection.
 
 ---
 
