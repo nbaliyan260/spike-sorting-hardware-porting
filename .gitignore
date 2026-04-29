@@ -64,3 +64,4 @@ tt-metal/runtime/
 # ── Keep these ONNX files (small exports, checked in intentionally) ───────────
 !notes/pca_transform.onnx
 !notes/pca_transform.onnx.data
+Nazish_Complete_Progress_Report.md
