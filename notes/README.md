@@ -26,7 +26,7 @@ Daily research logs, experiment results, and exported artifacts from the Tenstor
 | [`filter_test_results.json`](filter_test_results.json) | 4-test filter module output |
 | [`backend_attempt_results.json`](backend_attempt_results.json) | TT-NN operator analysis output |
 | [`pca_quantitative_comparison.json`](pca_quantitative_comparison.json) | Before/after benchmark: dimension, memory, timing |
-| [`pca_simulated_recordings_shaped_validation.json`](pca_simulated_recordings_shaped_validation.json) | simulated recordings realistic dataset validation results |
+| [`pca_simulated_recordings_validation.json`](pca_simulated_recordings_validation.json) | Structured synthetic dataset validation results |
 | [`pca_allen_real_validation.json`](pca_allen_real_validation.json) | Real Allen Institute Kilosort4 ground truth validation |
 | [`ttnn_real_results.json`](ttnn_real_results.json) | Real results from `tt-blackhole-01` |
 
