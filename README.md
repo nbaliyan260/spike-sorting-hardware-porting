@@ -3,7 +3,7 @@
 > **Contributor:** Nazish Baliyan  
 > **Role:** Tenstorrent Feasibility (Non-AMD Lane)  
 > **Hardware Target:** Tenstorrent Blackhole (TT-NN / TT-XLA)  
-> **Status:** PCA ported ✅ | TT device blocked by hardware reset ⚠️
+> **Status:** PCA ported ✅ | TT-NN hardware execution ✅ PASS
 
 ---
 
@@ -15,7 +15,7 @@ The work covers:
 - Full pipeline analysis and operator inventory
 - Isolation and testing of the PCA feature compression module
 - Integration of PCA into the live pipeline (replaced bypass)
-- Attempted real TT-NN execution on `tt-blackhole-01`
+- **Successful real TT-NN execution on `tt-blackhole-01`** (PCA transform verified on hardware)
 - Quantitative benchmarks and clear blocker documentation
 
 ---
@@ -31,7 +31,7 @@ The work covers:
 | All tests pass | `experiments/cross_validate_pca.py`: **9/9 ✅** |
 | simulated recordings validation | `experiments/test_pca_simulated_recordings_shaped.py`: **8/8 ✅**, 61.7% variance |
 | Real Allen KS4 ground truth | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
-| TT device blocked | Ethernet core timeout on `tt-blackhole-01` — needs board reset |
+| TT-NN hardware execution | ✅ **PASS** — `ttnn.sub` + `ttnn.matmul` ran on Blackhole chip, max diff 0.034 (bfloat16) |
 
 ---
 

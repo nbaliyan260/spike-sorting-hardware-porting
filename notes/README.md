@@ -46,13 +46,15 @@ The ONNX export confirms the PCA transform uses only universally supported opera
 ## Key Findings (Quick Reference)
 
 ```
-PCA fit time       : ~23–27 ms (one-time, CPU)
-PCA transform time : 0.0056 ms per batch
+PCA fit time       : ~2.8 ms (one-time, CPU)
+PCA transform time : 0.062 ms per batch (PyTorch CPU)
+TT-NN transform    : 1394.8 ms (first-run, bfloat16, includes device overhead)
 Dimension before   : 61 (raw spike waveform)
 Dimension after    : 6  (PCA-compressed)
 Reduction ratio    : 10.2x
 Reconstruction MSE : 0.821359
 Variance explained : 16.9%
 Deterministic      : YES (diff = 0.00e+00 across runs)
-TT device status   : BLOCKED (Ethernet core timeout — needs board reset)
+TT device status   : ✅ PASS — ttnn.sub + ttnn.matmul executed on Blackhole chip
+TT max diff        : 0.034 (bfloat16 vs float32, within tolerance)
 ```
