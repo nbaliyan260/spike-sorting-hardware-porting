@@ -9,7 +9,7 @@
 | Machine | macOS (local dev) / 10.127.30.197 (remote `tt-blackhole-01`) |
 | Python version | 3.10+ |
 | Dependencies | `torch`, `torchaudio`, `scipy`, `sklearn` |
-| Dataset | C46 (`c46_npx_raw.bin`) |
+| Dataset | Simulated recordings (`simulated_recordings_npx_raw.bin`) |
 
 ## Codebase Orientation
 

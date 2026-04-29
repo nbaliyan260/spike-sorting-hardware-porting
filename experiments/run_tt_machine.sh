@@ -45,9 +45,9 @@ echo "=================================================="
 python3 experiments/pca_quantitative_comparison.py 2>&1
 
 echo "=================================================="
-echo "STEP 6: test_pca_c46_shaped.py"
+echo "STEP 6: test_pca_simulated_recordings_shaped.py"
 echo "=================================================="
-python3 experiments/test_pca_c46_shaped.py 2>&1
+python3 experiments/test_pca_simulated_recordings_shaped.py 2>&1
 
 echo "=================================================="
 echo "STEP 7: test_pca_allen_real.py"

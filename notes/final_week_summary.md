@@ -13,7 +13,7 @@ I analyzed the Kilosort4 pipeline in `torchbci-hardware-ports-torchbci-module` e
 - PCA module: 7/7 tests passed
 - Filtering module: 4/4 tests passed
 
-The full pipeline (`KS4Pipeline` in `kilosort_ported.py`) requires the C46 dataset and probe configuration files on the remote machine for a complete end-to-end run.
+The full pipeline (`KS4Pipeline` in `kilosort_ported.py`) requires the Simulated recordings dataset and probe configuration files on the remote machine for a complete end-to-end run.
 
 ## 2. Active Pipeline Summary
 
@@ -61,7 +61,7 @@ Why:
 ### Pipeline Integration & Validation (`experiments/pca_quantitative_comparison.py`, etc.)
 - Integrated PCA into the live pipeline (fixed the bypass on line 544).
 - Benchmarked at **10.2× dimension reduction** (48,800 bytes → 4,800 bytes per batch).
-- Validated on C46-shaped data (61.7% variance) and real Allen Institute KS4 ground truth (100% variance).
+- Validated on simulated recordings data (61.7% variance) and real Allen Institute KS4 ground truth (100% variance).
 
 ### TT Machine Execution (`experiments/test_pca_ttnn_real.py`)
 - Executed all tests directly on `tt-blackhole-01`.
@@ -102,13 +102,13 @@ The PCA transform module exports cleanly to ONNX, confirming it uses only standa
 2. **Rewrite filtering in pure PyTorch** — replace scipy with `torchaudio.functional.highpass_biquad` or a manual IIR implementation
 3. **Test on actual Tenstorrent hardware** — deploy the `PCATransformModule` via TT-NN on the remote machine (10.127.30.197)
 4. **Profile bfloat16 precision loss** — TT hardware typically uses bfloat16; measure impact on PCA reconstruction quality
-5. **Run full pipeline with C46 data** — verify baseline on remote machine with real dataset
+5. **Run full pipeline with Simulated recordings data** — verify baseline on remote machine with real dataset
 
 ---
 
 ## Team Update (Ready to Send)
 
-> I finished the baseline analysis, isolated PCA Feature Conversion as the target module, and **integrated it into the live pipeline** (replacing the bypass at line 544 with a real fit-and-transform). Benchmarks show **10.2× dimension reduction** (61 → 6 features) and **10.2× memory reduction** per batch with only **0.0056 ms** overhead. Validated on three datasets: random (11.5% variance), C46-shaped realistic (61.7%, 8/8 ✅), and **real Allen Institute KS4 ground truth** (100% variance, 1,437 real spikes, 8/8 ✅). All 6 experiment scripts pass on both local Mac and `tt-blackhole-01` (TT-Metal venv). The PCA transform path (`sub + matmul`) is confirmed portable to TT-NN — both ops exist in the API and ttnn was verified importable on the hardware. Actual TT device execution is blocked by an Ethernet core timeout requiring board reset. Main remaining blockers for broader pipeline porting: (1) scipy in filtering, (2) iterative loops in detection. The PCA bypass blocker is now resolved.
+> I finished the baseline analysis, isolated PCA Feature Conversion as the target module, and **integrated it into the live pipeline** (replacing the bypass at line 544 with a real fit-and-transform). Benchmarks show **10.2× dimension reduction** (61 → 6 features) and **10.2× memory reduction** per batch with only **0.0056 ms** overhead. Validated on three datasets: random (11.5% variance), simulated recordings realistic (61.7%, 8/8 ✅), and **real Allen Institute KS4 ground truth** (100% variance, 1,437 real spikes, 8/8 ✅). All 6 experiment scripts pass on both local Mac and `tt-blackhole-01` (TT-Metal venv). The PCA transform path (`sub + matmul`) is confirmed portable to TT-NN — both ops exist in the API and ttnn was verified importable on the hardware. Actual TT device execution is blocked by an Ethernet core timeout requiring board reset. Main remaining blockers for broader pipeline porting: (1) scipy in filtering, (2) iterative loops in detection. The PCA bypass blocker is now resolved.
 
 ---
 

@@ -29,7 +29,7 @@ The work covers:
 | 10.2× dimension reduction | 61-dim → 6-dim, 48,800 → 4,800 bytes/batch |
 | Transform overhead | 0.0056 ms per batch (negligible) |
 | All tests pass | `experiments/cross_validate_pca.py`: **9/9 ✅** |
-| C46-shaped validation | `experiments/test_pca_c46_shaped.py`: **8/8 ✅**, 61.7% variance |
+| simulated recordings validation | `experiments/test_pca_simulated_recordings_shaped.py`: **8/8 ✅**, 61.7% variance |
 | Real Allen KS4 ground truth | `experiments/test_pca_allen_real.py`: **8/8 ✅**, 100% variance, 1,437 real spikes |
 | TT device blocked | Ethernet core timeout on `tt-blackhole-01` — needs board reset |
 
@@ -53,7 +53,7 @@ spike-sorting-hardware-porting/
 │   ├── cross_validate_pca.py          ← Cross-validation: 9/9 tests ✅
 │   ├── pca_quantitative_comparison.py ← Before/after benchmark (10.2× reduction)
 │   ├── test_pca_module.py             ← PCA unit tests (7/7 ✅)
-│   ├── test_pca_c46_shaped.py         ← C46-shaped realistic validation (8/8 ✅)
+│   ├── test_pca_simulated_recordings_shaped.py         ← simulated recordings realistic validation (8/8 ✅)
 │   ├── test_pca_allen_real.py         ← ⭐ Real Allen KS4 ground truth validation (8/8 ✅)
 │   ├── test_pca_tenstorrent.py        ← TT-NN compatibility analysis
 │   ├── test_pca_ttnn_real.py          ← Real TT-NN execution script
@@ -75,7 +75,7 @@ spike-sorting-hardware-porting/
 │   ├── filter_test_results.json       ← Filter test output
 │   ├── backend_attempt_results.json   ← TT-NN analysis output
 │   ├── pca_quantitative_comparison.json ← Benchmark numbers
-│   ├── pca_c46_shaped_validation.json ← C46-shaped validation results
+│   ├── pca_simulated_recordings_shaped_validation.json ← simulated recordings validation results
 │   ├── pca_allen_real_validation.json ← ⭐ Real Allen ground truth results
 │   └── ttnn_real_results.json         ← Real hardware results from tt-blackhole-01
 │
@@ -223,7 +223,7 @@ source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/pyt
 
 - **Paper:** Pachitariu et al., *Kilosort4: fast spike sorting with a graph-based algorithm*, Nature Methods 2024. [`s41592-024-02232-7.pdf`](./s41592-024-02232-7.pdf)
 - **Codebase:** Based on `torchbci` — PyTorch-based Brain-Computer Interface framework
-- **Dataset:** C46 (Neuropixels recording, 384 channels, ~50 kHz)
+- **Dataset:** Simulated recordings (Neuropixels recording, 384 channels, ~50 kHz)
 
 ---
 

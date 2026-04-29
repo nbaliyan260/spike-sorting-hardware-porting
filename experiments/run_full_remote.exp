@@ -36,10 +36,10 @@ expect -timeout 10 "\$"
 send "python3 experiments/pca_quantitative_comparison.py 2>&1\r"
 expect -timeout 90 "\$"
 
-# ── 5. Run test_pca_c46_shaped.py ────────────────────────────────────────────
-send "echo '=== STEP5: test_pca_c46_shaped.py ==='\r"
+# ── 5. Run test_pca_simulated_recordings_shaped.py ────────────────────────────────────────────
+send "echo '=== STEP5: test_pca_simulated_recordings_shaped.py ==='\r"
 expect -timeout 10 "\$"
-send "python3 experiments/test_pca_c46_shaped.py 2>&1\r"
+send "python3 experiments/test_pca_simulated_recordings_shaped.py 2>&1\r"
 expect -timeout 90 "\$"
 
 # ── 6. Run test_pca_allen_real.py (NEW) ──────────────────────────────────────
@@ -67,7 +67,7 @@ send "echo 'PCA_TEST:' && cat notes/pca_test_results.json\r"
 expect -timeout 10 "\$"
 send "echo 'QUANT:' && cat notes/pca_quantitative_comparison.json\r"
 expect -timeout 10 "\$"
-send "echo 'C46:' && cat notes/pca_c46_shaped_validation.json\r"
+send "echo 'Simulated recordings:' && cat notes/pca_simulated_recordings_shaped_validation.json\r"
 expect -timeout 10 "\$"
 send "echo 'ALLEN:' && cat notes/pca_allen_real_validation.json\r"
 expect -timeout 10 "\$"

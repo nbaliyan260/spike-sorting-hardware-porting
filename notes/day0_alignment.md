@@ -17,8 +17,8 @@
 - **Note:** The hardware-port fork contains additional modules (`kilosort4/`, `datasets/`, `rtsort/`, `kilosort3/`) not present in `torchbci-main`. All Kilosort work should reference the hardware-port fork.
 
 ### Dataset Path
-- **Dataset:** C46 (`c46_npx_raw.bin`)
-- **Expected location:** `../data/c46/c46_npx_raw.bin` (relative to demo/)
+- **Dataset:** Simulated recordings (`simulated_recordings_npx_raw.bin`)
+- **Expected location:** `../data/simulated_recordings/simulated_recordings_npx_raw.bin` (relative to demo/)
 - **Status:** Data files need to be verified on the Tenstorrent machine
 - **Sampling rate:** 50023.87552924 Hz
 
@@ -37,6 +37,6 @@
 |------|-------|
 | Target stack | Tenstorrent (TT-NN / TT-XLA) |
 | Active repo/branch | torchbci-hardware-ports-torchbci-module / main |
-| Dataset path | ../data/c46/c46_npx_raw.bin |
+| Dataset path | ../data/simulated_recordings/simulated_recordings_npx_raw.bin |
 | Primary machine | 10.127.30.197 (remote) + macOS (local dev) |
 | Expected first deliverable | Baseline run + pipeline map + module test |
