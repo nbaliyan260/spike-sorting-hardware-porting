@@ -1,0 +1,23 @@
+{
+  "dataset": "Allen Institute synthetic recording (real KS4 output)",
+  "source": "nvidia-rtx5000 run \u2014 NVIDIA RTX 5000 Ada, CUDA 12.4",
+  "recording": {
+    "n_channels": 32,
+    "sample_rate_hz": 32000,
+    "duration_s": 30,
+    "n_spikes": 1437,
+    "n_clusters": 9,
+    "median_f1_ks4": 0.9197
+  },
+  "results": {
+    "variance_explained_real_allen": 100.0,
+    "variance_explained_c46_shaped": 61.66,
+    "variance_explained_random": 11.47,
+    "reconstruction_mse": 0.0,
+    "reconstruction_rmse": 0.0,
+    "memory_reduction": "10.2x",
+    "deterministic": true
+  },
+  "tests_passed": "8/8",
+  "overall": "PASS"
+}

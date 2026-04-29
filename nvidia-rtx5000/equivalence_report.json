@@ -1,0 +1,151 @@
+{
+  "tolerance_ms": 0.5,
+  "ground_truth_path": "recordings_allen.h5",
+  "run_a": {
+    "path": "outputs/nvidia-rtx5000",
+    "manifest": {
+      "tag": "nvidia-rtx5000",
+      "run_status": "ok",
+      "run_error": null,
+      "runtime_s": 10.528063535690308,
+      "recording": {
+        "path": "recordings_allen.h5",
+        "fs": 32000.0,
+        "n_samples": 960000,
+        "n_channels": 32,
+        "duration_s": 30.0,
+        "bin_conversion": {
+          "scale_float32_to_int16": 307.54870286400654,
+          "input_abs_max_uv": 104.0485610961914,
+          "quantization_step_uv": 0.0032515175342559812,
+          "n_samples_clipped": 0,
+          "max_observed_int16": 32000
+        }
+      },
+      "settings_overrides": {
+        "n_chan_bin": 32,
+        "fs": 32000.0,
+        "nblocks": 0,
+        "tmin": 0,
+        "tmax": 30.0
+      },
+      "deterministic_mode": 2,
+      "seed": 1,
+      "device": "cuda",
+      "n_spikes": 1460,
+      "n_clusters": 9,
+      "environment": {
+        "timestamp_utc": "2026-04-27T15:19:56Z",
+        "host": "ws-l5-019",
+        "platform": "Linux-5.15.173-ql-generic-13.0-17-x86_64-with-glibc2.35",
+        "python": "3.13.12",
+        "torch": "2.6.0+cu124",
+        "cuda_available": true,
+        "device_count": 1,
+        "hip": null,
+        "cuda_version": "12.4",
+        "device_name": "NVIDIA RTX 5000 Ada Generation",
+        "device_props": {
+          "name": "NVIDIA RTX 5000 Ada Generation",
+          "total_memory_MB": 32335,
+          "multi_processor_count": 100,
+          "major": 8,
+          "minor": 9,
+          "gcnArchName": "NVIDIA RTX 5000 Ada Generation"
+        },
+        "git_commit": "2243fee7e13e33eba75b128a0dac99bca48d64d4",
+        "cupy_version": "14.0.1",
+        "cuml_version": null,
+        "pynvml_version": "unknown"
+      }
+    },
+    "vs_ground_truth": {
+      "n_clusters": 9,
+      "n_gt_units": 7,
+      "n_matched": 6,
+      "n_unmatched_clusters": 3,
+      "n_missed_gt_units": 1,
+      "median_f1": 0.9197,
+      "mean_f1": 0.7716333333333334,
+      "min_f1": 0.0109,
+      "matched_pairs": [
+        {
+          "cluster_id": 3,
+          "gt_unit_id": 4,
+          "gt_cell_type": "E",
+          "gt_snr": 9.518115043640137,
+          "true_positives": 142,
+          "n_predicted": 142,
+          "n_ground_truth": 142,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        {
+          "cluster_id": 8,
+          "gt_unit_id": 1,
+          "gt_cell_type": "E",
+          "gt_snr": 4.261946678161621,
+          "true_positives": 102,
+          "n_predicted": 102,
+          "n_ground_truth": 102,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        {
+          "cluster_id": 1,
+          "gt_unit_id": 3,
+          "gt_cell_type": "E",
+          "gt_snr": 5.9607014656066895,
+          "true_positives": 161,
+          "n_predicted": 162,
+          "n_ground_truth": 161,
+          "precision": 0.9938,
+          "recall": 1.0,
+          "f1": 0.9969
+        },
+        {
+          "cluster_id": 4,
+          "gt_unit_id": 5,
+          "gt_cell_type": "I",
+          "gt_snr": 4.473443031311035,
+          "true_positives": 377,
+          "n_predicted": 518,
+          "n_ground_truth": 377,
+          "precision": 0.7278,
+          "recall": 1.0,
+          "f1": 0.8425
+        },
+        {
+          "cluster_id": 7,
+          "gt_unit_id": 6,
+          "gt_cell_type": "I",
+          "gt_snr": 3.356995105743408,
+          "true_positives": 320,
+          "n_predicted": 486,
+          "n_ground_truth": 335,
+          "precision": 0.6584,
+          "recall": 0.9552,
+          "f1": 0.7795
+        },
+        {
+          "cluster_id": 6,
+          "gt_unit_id": 2,
+          "gt_cell_type": "E",
+          "gt_snr": 10.495027542114258,
+          "true_positives": 1,
+          "n_predicted": 16,
+          "n_ground_truth": 167,
+          "precision": 0.0625,
+          "recall": 0.006,
+          "f1": 0.0109
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "passed": true,
+    "checks": []
+  }
+}
