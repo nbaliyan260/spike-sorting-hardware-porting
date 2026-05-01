@@ -1,50 +1,78 @@
 {
   "target": "Tenstorrent Blackhole TT-NN",
   "module": "PCA (standalone, no torchaudio)",
-  "timestamp": "2026-04-29 23:43:19",
-  "machine": "tt-blackhole-01",
+  "machines": [
+    {
+      "hostname": "tt-blackhole-01",
+      "ip": "10.127.30.197",
+      "timestamp": "2026-04-30",
+      "os": "Ubuntu 22.04.5 LTS, Linux 6.8.0-110-generic",
+      "torch_version": "2.7.1+cpu",
+      "ttnn_version": "0.68.0",
+      "kmd_version": "2.8.0",
+      "umd_version": "19.4.2",
+      "n_chips": 4
+    },
+    {
+      "hostname": "tt-blackhole-02",
+      "ip": "10.127.30.199",
+      "timestamp": "2026-05-01",
+      "os": "Ubuntu 22.04.5 LTS, Linux 6.8.0-106-generic",
+      "torch_version": "2.11.0",
+      "ttnn_version": "0.68.0",
+      "kmd_version": "2.6.0",
+      "umd_version": "19.4.2",
+      "n_chips": 4
+    }
+  ],
   "experiments": [
     {
       "name": "pca_fit_cpu",
       "status": "PASS",
-      "fit_ms": 2.8,
-      "components_shape": [
-        61,
-        6
-      ],
-      "Z_shape": [
-        200,
-        6
-      ],
+      "fit_ms_bh01": 2.8,
+      "fit_ms_bh02": 4.3,
+      "components_shape": [61, 6],
+      "Z_shape": [200, 6],
       "variance_explained": 0.1691
     },
     {
       "name": "pytorch_manual_transform",
       "status": "PASS",
       "max_diff": 0.0,
-      "time_ms": 0.042
+      "time_ms_bh01": 0.042,
+      "time_ms_bh02": 0.041
     },
     {
       "name": "ttnn_real_execution",
       "status": "PASS",
-      "ttnn_sub_ms": 747.698,
-      "ttnn_matmul_ms": 647.093,
-      "ttnn_total_ms": 1394.791,
-      "max_diff_vs_pytorch": 0.034157752990722656,
-      "mean_diff_vs_pytorch": 0.005116241052746773,
-      "mse_vs_pytorch": 4.890966374659911e-05,
+      "tt_blackhole_01": {
+        "ttnn_sub_ms": 747.698,
+        "ttnn_matmul_ms": 647.093,
+        "ttnn_total_ms": 1394.791,
+        "max_diff_vs_pytorch": 0.034157752990722656,
+        "mean_diff_vs_pytorch": 0.005116241052746773,
+        "mse_vs_pytorch": 4.890966374659911e-05
+      },
+      "tt_blackhole_02": {
+        "ttnn_sub_ms": 681.762,
+        "ttnn_matmul_ms": 657.621,
+        "ttnn_total_ms": 1339.382,
+        "max_diff_vs_pytorch": 0.034157752990722656,
+        "mean_diff_vs_pytorch": 0.005116241052746773,
+        "mse_vs_pytorch": 4.890966374659911e-05
+      },
       "dtype": "bfloat16",
       "layout": "TILE_LAYOUT",
       "memory": "L1",
-      "Z_tt_shape": [
-        200,
-        6
-      ]
+      "Z_tt_shape": [200, 6],
+      "note": "Numerical results (max_diff, MSE) are identical across both machines"
     },
     {
       "name": "pytorch_perf_baseline",
-      "pytorch_mean_ms": 0.062,
-      "pytorch_std_ms": 0.008,
+      "pytorch_mean_ms_bh01": 0.062,
+      "pytorch_std_ms_bh01": 0.008,
+      "pytorch_mean_ms_bh02": 0.064,
+      "pytorch_std_ms_bh02": 0.010,
       "n_samples": 200,
       "n_features": 61,
       "k_components": 6
@@ -57,12 +85,10 @@
     "ttnn_importable": true,
     "tt_device_opened": true,
     "tt_execution_status": "PASS",
+    "verified_on_machines": ["tt-blackhole-01", "tt-blackhole-02"],
     "blocker_pca_fit": "SVD / pca_lowrank not supported on TT hardware",
-    "blocker_device": "None",
-    "transform_ops": [
-      "ttnn.sub",
-      "ttnn.matmul"
-    ],
+    "blocker_device": "None — resolved on both machines",
+    "transform_ops": ["ttnn.sub", "ttnn.matmul"],
     "transform_ops_support": "Both supported in TT-NN API"
   }
 }

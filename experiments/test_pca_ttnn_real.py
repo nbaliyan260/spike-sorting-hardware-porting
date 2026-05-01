@@ -17,9 +17,9 @@ Strategy:
   - Report performance and any blockers
 
 Author: Nazish Baliyan | Date: 2026-04-28
-Target: Tenstorrent Blackhole (tt-blackhole-01)
+Target: Tenstorrent Blackhole (any TT-Metal host with ttnn in PYTHONPATH)
 """
-import sys, os, time, json, traceback
+import sys, os, time, json, traceback, socket
 import torch
 import numpy as np
 
@@ -27,7 +27,7 @@ results = {
     "target": "Tenstorrent Blackhole TT-NN",
     "module": "PCA (standalone, no torchaudio)",
     "timestamp": str(time.strftime("%Y-%m-%d %H:%M:%S")),
-    "machine": "tt-blackhole-01",
+    "machine": socket.gethostname(),
     "experiments": [],
     "ttnn_available": False,
     "ttnn_device_opened": False,

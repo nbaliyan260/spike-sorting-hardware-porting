@@ -24,7 +24,7 @@ The work covers:
 - Full pipeline analysis and operator inventory
 - Isolation and testing of the PCA feature compression module
 - Integration of PCA into the live pipeline (replaced bypass)
-- **Successful real TT-NN execution on `tt-blackhole-01`** (PCA transform verified on hardware)
+- **Successful real TT-NN execution on Tenstorrent Blackhole** — verified on two machines: `tt-blackhole-01` (2026-04-30) and `tt-blackhole-02` (2026-05-01) with identical numerical results
 - Quantitative benchmarks and clear blocker documentation
 
 ---
@@ -121,10 +121,15 @@ python3 experiments/test_pca_allen_real.py
 # Expected: 8/8 tests pass, 100% variance on 1437 real spikes
 ```
 
-### 5. Run TT-NN execution (requires Tenstorrent machine)
+### 5. Run TT-NN execution (requires Tenstorrent machine with ttnn)
 ```bash
-ssh nazishbaliyan@10.127.30.197
-source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/python_env/bin/activate
+# SSH to the assigned Blackhole host
+ssh nazishbaliyan@<TT_HOST>
+# Create and activate a Python venv, install ttnn
+python3 -m venv ~/tt_env && source ~/tt_env/bin/activate
+pip install ttnn torch numpy
+# Clone repo and run
+git clone https://github.com/nbaliyan260/spike-sorting-hardware-porting.git ~/spike-sorting-hardware-porting
 cd ~/spike-sorting-hardware-porting
 python3 experiments/test_pca_ttnn_real.py
 # Expected: PASS — PCA runs on Blackhole chip (bfloat16, max diff ~0.034)
@@ -191,20 +196,20 @@ Detection → PCA [N, 61] → [N, 6] → Clustering        (4,800 bytes/batch, 1
 
 ## Hardware Execution Status
 
-| Check | Status |
-|-------|--------|
-| `ttnn` importable on `tt-blackhole-01` | ✅ Yes |
-| 4x Blackhole chips detected | ✅ Yes |
-| `ttnn.open_device(0)` | ✅ Yes (resolved after board reset) |
-| `ttnn.sub` + `ttnn.matmul` | ✅ Executed successfully (bfloat16) |
-| Max diff vs PyTorch float32 | 0.034 (within bfloat16 tolerance) |
-| TT-NN code | ✅ `experiments/test_pca_ttnn_real.py` |
+| Check | tt-blackhole-01 (Apr 30) | tt-blackhole-02 (May 1) |
+|-------|--------------------------|-------------------------|
+| `ttnn` importable | ✅ Yes (v0.68.0) | ✅ Yes (v0.68.0) |
+| 4x Blackhole chips detected | ✅ Yes | ✅ Yes |
+| `ttnn.open_device(0)` | ✅ Yes | ✅ Yes |
+| `ttnn.sub` + `ttnn.matmul` | ✅ Executed | ✅ Executed |
+| Max diff vs PyTorch float32 | 0.034 | 0.034 |
+| MSE vs PyTorch float32 | 4.89e-05 | 4.89e-05 |
 
 **Timing breakdown:**
 | Backend | Latency | Notes |
 |---------|---------|-------|
 | PyTorch (CPU) | ~0.06 ms | 100-run average, N=200, D=61, K=6 |
-| TT-NN (first run) | ~1395 ms | Cold start: device init + tensor transfer + layout conversion |
+| TT-NN (first run) | ~1340–1395 ms | Cold start: device init + tensor transfer + layout conversion |
 | TT-NN (warm, projected) | Significantly lower | Steady-state inference without cold-start overhead |
 
 ---
@@ -213,18 +218,30 @@ Detection → PCA [N, 61] → [N, 6] → Clustering        (4,800 bytes/batch, 1
 
 **Local (macOS):** Python 3.x, PyTorch, torchaudio, scipy, numpy  
 **Remote (TT machine):**
+
+1. **Login / scheduling:** Access may be moved between hosts to avoid resource clashes. Initially used `tt-blackhole-01`; admin later assigned `tt-blackhole-02`.
+2. **TT-NN Python (`ttnn`):** Install via `pip install ttnn` in a Python venv. System Python alone does not include `ttnn`.
+
+**Hardware proof — two machines:**
 ```
+# Machine 1 (2026-04-30)
 Host    : tt-blackhole-01 (10.127.30.197)
-OS      : Ubuntu 22.04.5 LTS
-Python  : 3.10.12
-torch   : 2.7.1+cpu
-ttnn    : 0.68.0 (TT-Metal venv)
-Hardware: 4x Tenstorrent Blackhole chips
+OS      : Ubuntu 22.04.5 LTS, Linux 6.8.0-110-generic
+torch   : 2.7.1+cpu | ttnn: 0.68.0
+Hardware: 4x Tenstorrent Blackhole | KMD 2.8.0, UMD 19.4.2
+
+# Machine 2 (2026-05-01) — confirms issue fully resolved
+Host    : tt-blackhole-02 (10.127.30.199)
+OS      : Ubuntu 22.04.5 LTS, Linux 6.8.0-106-generic
+torch   : 2.11.0 | ttnn: 0.68.0
+Hardware: 4x Tenstorrent Blackhole | KMD 2.6.0, UMD 19.4.2
 ```
 
-Activate TT environment:
+Setup on a fresh TT account:
 ```bash
-source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/python_env/bin/activate
+python3 -m venv ~/tt_env
+source ~/tt_env/bin/activate
+pip install ttnn torch numpy
 ```
 
 ---
@@ -261,4 +278,4 @@ source ~/assignment-1-single-core-matrix-multiplication-nbaliyan260/tt-metal/pyt
 
 *This work is part of a System Design course project evaluating hardware portability of neural signal processing pipelines.*
 
-> **Conclusion:** PCA is fully portable to Tenstorrent hardware and has been validated end-to-end on a real Blackhole chip. Filtering (scipy) and detection (control flow) remain the main blockers for a complete pipeline port.
+> **Conclusion:** PCA is fully portable to Tenstorrent hardware and has been validated end-to-end on two real Blackhole machines with identical numerical results (max diff 0.034, MSE 4.89e-05). Filtering (scipy) and detection (control flow) remain the main blockers for a complete pipeline port.
